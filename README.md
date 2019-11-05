@@ -2,6 +2,7 @@
 
 The FastDP software implements the following fast variant of Density Peaks clustering algorithm:
 Sieranoja, Sami, and Pasi Fränti. "Fast and General Density Peaks Clustering." Pattern Recognition Letters (2019).
+https://www.sciencedirect.com/science/article/pii/S0167865519303009
 
 The software is provided with GNU Lesser General Public License, Version 3. https://www.gnu.org/licenses/lgpl.html. All files except those under data and contrib -folders are subject to this license. See LICENSE.txt.
 
