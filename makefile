@@ -16,7 +16,7 @@ all: dencl
 
 
 dencl.o: dencl/dencl.c
-	$(CC) -c -O3  -std=c99 -fopenmp -fpermissive  -Wall  -I. -Imodules/ -Idencl/contrib/libstrcmp/src/  dencl/dencl.c -lm -static
+	$(CC) -c -O3  -std=c99 -fopenmp -fpermissive  -Wall  -I. -Imodules/  dencl/dencl.c -lm -static
 
 dencl: $(OBJS)
 	$(GPP) -o denc -O3  -std=c99 -fopenmp -fpermissive  -Wall  -I. -Imodules/ $(OBJS) -lm

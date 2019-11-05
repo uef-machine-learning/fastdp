@@ -12,13 +12,7 @@
 #include <float.h>
 
 #include "argtable3.h"
-//#include "contrib/libstrcmp/src/distance/levenshtein.c"
-#include "distance/levenshtein.c"
 #include "dencl.h"
-
-
-
-
 
 
 /*
