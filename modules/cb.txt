@@ -1,0 +1,281 @@
+GETTING STARTED USING CB-MODULE
+Ismo K„rkk„inen, Pasi Fr„nti
+Last modified: 8.12.2000 TKa
+               1.12.2000 PF
+
+A Quick Survival Guide
+
+1. Introduction
+2. Reading and initialization
+3. Basic information about data
+4. Distances and errors
+5. Changing the solution
+6. Saving the data and cleaning up
+7. Data structures and file formats
+
+
+1. Introduction
+---------------
+
+CB.C and it's header file CB.H define structures and functions that
+perform basic tasks in clustering. These include reading and writing
+information from and to a file and handling the solution in general
+terms. Data is known as a training set and it is used along with two
+complementary representations of clustering: a codebook (centroids or
+averages of all points in cluster) and a partititoning (mapping of points
+to clusters). Most common operations on these are bundled in
+CB-module. This document is intended to give a brief introduction to using
+the module and thus prevent the urge to write your own routines.
+
+
+2. Reading and initialization
+-----------------------------
+
+The data is represented by a TRAININGSET. It is a set of vectors and holds
+all essential information such as the dimensionality of the data and
+frequencies of individual vectors, since there may be several identical
+vectors.
+
+The file format of TRAININGSET is a binary format. Data in ASCII-format
+can be converted to this format with separate tools. Inverse conversion
+is also possible. When dealing with other formats it is simplest to first
+convert the data to an ASCII file by the user, and then use the existing
+tools (such as ASC2CB and RAW2CB) to convert to ASCII-file to CB- or TS-
+format. The inverse format can be done using CBSHOW, which outputs the
+content of CB/TS files in ASCII format on screen.
+
+To read a data file, you must first have a variable of type TRAININGSET
+and then just read the data with ReadTrainingSet-routine. That's it.
+
+After you have the data, you can create both CODEBOOKs and PARTITIONINGs
+by passing functions CreateNewCodebook and CreateNewPartitioning the
+TRAININGSET and the number of clusters you wish the structures to be able
+to handle. This number must be same for codebooks and partitionings that
+will be used together.
+
+Example:
+  TRAININGSET TS;
+  ReadTrainingSet("bridge.ts", &TS);
+
+
+3. Basic information about data
+-------------------------------
+
+There's a multitude of macros that give information about the data. Due
+to the similarity of a training set and codebook, they work for both
+types. The CB in functions and macros below refers to a CODEBOOK or
+a TRAININGSET.
+
+The following macros are the most important.
+
+-BookSize(CB) returns the number of vectors. This is the number of
+separately represented vectors.
+-TotalFreq(CB) is the total number of vectors. This also takes into
+account frequencies of different vectors.
+-VectorSize(CB) is the dimensionality of the data.
+
+-Vector(CB,index) returns vector from CB with the given index. Valid
+indices are from 0 to BookSize(CB) - 1.
+-VectorScalar(CB,index,scalar) returns the element scalar of vector
+index. scalar may be from 0 to VectorSize(C) - 1.
+-VectorFreq(CB,index) tells the frequency of the vector.
+
+
+PARTITIONING is a mapping of points to clusters. All points in a given
+cluster can be accessed sequentially, since the points are stored in a
+list. For it, the most important macros are:
+
+-Map(P,item) tells to which cluster vector item has been mapped. For
+TRAININGSET TS, item can be from 0 to BookSize(TS) - 1.
+-UniqueVectors(P,Pindex) is the number of vectors in cluster Pindex.
+Vector frequencies are not taken into account.
+-PartitionCount(P) is the number of partitions and should always be the
+same as the BookSize(CB) of the CODEBOOK with which the partitioning is
+used.
+-FirstVector(P,Pindex) returns the index of the first vector in a cluster.
+-NextVector(P,item) returns the next vector in the same cluster to whict
+item belongs to (i.e. use the index of first or previous next vector).
+-EndOfPartition(item) tells if the partition has ended, parameter is the
+index returned by NextVector.
+
+Example for looping through all training vectors in all clusters:
+
+  PARTITIONING* P; /* This has to be legally initialized. */
+  int i, j;
+
+  /* Through all clusters. */
+  for( i = 0; i < PartitionCount(P); i++ )
+    {
+    /* Through all training vectors in cluster 'i'. */   
+    for( j = FirstVector(P, i); ! EndOfPartition(j); j = NextVector(P, j) )
+      {
+      /* Do something with trainig vector 'j' in cluster 'i'. *
+      }
+    }
+
+
+4. Distances and errors
+-----------------------
+
+CB-module also contains functions to calculate distances between vectors
+and errors (or goodness) of a given clustering.
+
+VectorDistance calculates the distance between two vectors. Two
+first parameters are vectors, and they can be obtained from CB by
+Vector(CB,index). Vsize is the dimensionality of data, and it can
+be obtained by VectorSize(CB). The fourth parameter maxdist is the
+distance which terminates the distance calculation if it is exceeded.
+This can be used when looking for the closest point (i.e. if we observe
+that the point is farther that the closest so far, there's no need to
+calculate the exact distance). Last parameter is the type of distance.
+Note that EUCLIDEQANSQ returns the square of the Euclidean distance
+between vectors.
+
+VectorDist is a simplified version of the VectorDistance, and it is
+implemented as a macro. Use this one if you don't need the more sophis-
+ticated features!
+
+To calculate the error use AverageErrorForSolution.
+
+Note that AverageErrorForSolution calculates distances between each
+training vector and its current codevector. Especially, it does not
+search the nearest code vector for a training vector before distance
+calculation. If you want to know the average error when each training
+vector is mapped to its nearest code vector, use AverageErrorCB or
+AverageErrorCBFast instead.
+
+
+5. Changing the solution
+------------------------
+
+There are two improtant functions that are commonly used to improve
+given solution:
+- GenerateOptimalPartitioning generates optimal partitioning
+with respect to a given codebook and error function.
+- GenerateOptimalCodebook generates optimal codebook with
+respect to a given partitioning. (Together these two routines constitute
+a single GLA-iteration!)
+
+Other commonly used routines are:
+- LocalReapartitioningGeneral maps the points from a given cluster to
+their nearest cluster.
+
+- RepartitionDueToNewVectors moves vectors from their old partitions
+to one of the clusters given as argument. The idea is that if the
+centroids for only the given clusters have moved, then points may only
+move to the moved clusters. Assumption is that all points have already
+been mapped to the nearest cluster. Points either stay in the old cluster
+or they move to one of the clusters given as a parameter.
+
+- RepartitionDueToNewVectorGeneral does that same as above, but for single
+cluster.
+
+- ChangePartition is used to move a point from one partition to another.
+
+
+6. Saving the data and cleaning up
+----------------------------------
+
+To write a codebook (or a training set) to a file, use the function
+WriteCodebook. It takes the filename, CODEBOOK to be saved and whether
+overwriting an existing file is allowed.
+
+Saving a PARTITIONING is done with WritePartitioning, which takes
+filename, PARTITIONING, TRAININGSET and info whether overwriting an
+existing file is allowed.
+
+TRAININGSET and CODEBOOK can be destroyed with FreeCodebook.
+PARTITIONING can be destroyed with FreePartitioning.
+
+
+7. Data structures and file formats
+-----------------------------------
+
+The data structures and file formats for TRAININGSET and CODEBOOK
+are identical. They also share the same set of functions. The only
+difference is in the version string.
+
+   typedef     struct { char	    Versionstr[MaxVersionLength];
+			int	    BlockSizeX;
+			int	    BlockSizeY;
+			int	    CodebookSize;
+			int	    TotalFreq;
+			int	    BytesPerElement;
+			int	    MinValue;
+			int	    MaxValue;
+			int	    Preprocessing;
+			char	    GenerationMethod[MaxGenMethodLength];
+			BOOKTYPE    Book;
+			int	    AllocatedSize;
+		      } CODEBOOK;
+
+The file format contains the same information as the data structure.
+The header of the file format is in ASCII format, and the vectors are
+stored in binary format separated from the header by string with
+undefined number of minus signs: "---------------------------\n".
+
+char Versionstr[]: Contains identification string and version number.
+Current versions are "VQ CODEBOOK 2.0\n" and "VQ TRAINING SET 2.0\n".
+
+int BlockSizeX, BlockSizeY: These defines the vector dimension. The data
+structure support 2-dimensional vectors (e.g. image blocks). Otherwise if
+there data does not contain any 2-D structure, it is recommended to define
+the vectors as Xsize=42, Ysize=1 in the case of vectors with 42 elements.
+
+int CodebookSize: Number of vectors in the codebook.
+
+int TotalFreq: The number of all vectors in the codebook. This is different
+from the CodebookSize only if the vector frequencies are higher than 1.
+In this case, TotalFreq should equal to the sum of the vector frequencies.
+
+int BytesPerElement: Defines by how many bytes are used per element in
+the representation of the vector elements. Supported numbers are 1,2,3
+and 4. Use 1 byte per element by default, which is enough to represent
+values in the range [0,255].
+
+int MinValue, MaxValue: These defines the effective range of the vector
+elements. With 1 byte per element, use MinValue=0 and MaxValue=255 by
+default.
+
+int Preprocessing: This field is preserved for user defined additional
+information about the parameters how the particular TRAININGSET or CODEBOOK
+was created. Currently, nobody uses this field. Set is to 0 if no use.
+
+char GenerationMethod[MaxGenMethodLength]: In this string you may document
+how the particular TRAININGSET or CODEBOOK was created. In case of CODEBOOK,
+this field usually contains the name of the algorithm with version number.
+
+BOOKTYPE Book: This is a pointer to the structure containing the vectors.
+In the file structure, this part is stored in binary format and separeted
+from the ASCII file headear by the "--------------\n" string.
+int AllocatedSize:
+
+Vectors:
+--------
+Vecotrs are stored in BOOKTYPE, which is a dynamically allocated table
+of type BOOKNODE:
+
+   typedef     struct { VECTORTYPE    vector;
+                        VECTORELEMENT vmean;
+                        int           freq;
+                        char*         name;
+                      } BOOKNODE;
+
+Vector: This is similarly a dynamically allocated list of integers (int).
+It is assumed that a 32-bit compiler is used so that each element can use
+1-4 bytes per elements defined in the codebook header.
+
+vmean: This field contains the average value of the vector elements.
+For most program this is just additional information which is never
+used. However, all routines in CB maintains this value so if you
+do not modify the vectors directly by yourself, you can assume that
+the vmean value is always correct, in case you will need it.
+
+freq: Frequency of the vector. This field tells how many times the
+same vector is included in the TRAININGSET or CODEBOOK. It is therefore
+important always include the frequency in the calculations when you
+operate with the TRAININGSET or CODEBOOK.
+
+name: Documentary field. If the vectors are set of attributes of some
+real clustering problem, you may document the name of the vectors using
+this string.

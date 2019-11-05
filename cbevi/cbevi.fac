@@ -1,0 +1,30 @@
+        
+Fact( InformationTheoretic,
+      "Information theoretic indexes",
+      'N', 1, ENUM, 0, 0, 4, 0, NO,
+      NO_IT, NMI, NVI, MI, VI, it6, it7, it8, it9, it10,
+      "Not selected", "Normalized mutual information" , "Normalized variation of information","Mutual information" , "Variation of information", 
+                  0, 0, 0, 0, 0, YES )
+                  
+Fact( PairCounting,
+      "Pair counting indexes",
+      'P', 1, ENUM, 0, 0, 4, 0, NO,
+      NO_PC, RI, ARI, JD, FM, pc6, pc7, pc8, pc9, pc10,
+      "Not selected", "Rand Index" , "Adjusted Rand Index","Jaccard" , "Fowlkes and Mallows", 
+                  0, 0, 0, 0, 0, YES )
+                  
+Fact( SetMatching,
+      "Set matching indexes",
+      'M', 1, ENUM, 0, 0, 5, 3, NO,
+      NO_SM, NVD, CH, CI, CIstar, CIpart, sm7, sm8, sm9, sm10,
+      "Not selected", "Normalized Van Dongen" , "Criterion H", "Centroid Index" , "CI*", 
+                  "CIpart", 0, 0, 0, 0, YES )
+      
+Fact( QuietLevel,
+      "Quiet level",
+      'Q',    1,  INT,    0,    0, 99,    2,    NO,
+      qi1, qi2, qi3, qi4, qi5, qi6, qi7, qi8, qi9, qi10,
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      YES )
+
+

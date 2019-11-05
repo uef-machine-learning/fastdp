@@ -1,0 +1,162 @@
+ll:2
+num_iter=100
+DENCL
+infn:/home/sjs/impro/data_range_1000_4.txt neighbors:40 clusters:20 data type:set
+clusters=20 knng_algo=0 knng_endc:0.000100 start_nndes:0.100000
+time[start]=0.000000s
+Num lines: 1000
+str: R50 K00 T15 R00 D10 L60 I30 H15
+  word: 'R50' 0
+  word: 'K00' 1
+  word: 'T15' 2
+  word: 'R00' 3
+  word: 'D10' 4
+  word: 'L60' 5
+  word: 'I30' 6
+  word: 'H15' 7
+ids: 0 1 2 3 4 5 6 7 
+str: T79 I70 A30 S70
+  word: 'T79' 8
+  word: 'I70' 9
+  word: 'A30' 10
+  word: 'S70' 11
+ids: 8 9 10 11 
+str: M70 L80 I80 J40 J20 F00 G30 J09 I95
+  word: 'M70' 12
+  word: 'L80' 13
+  word: 'I80' 14
+  word: 'J40' 15
+  word: 'J20' 16
+  word: 'F00' 17
+  word: 'G30' 18
+  word: 'J09' 19
+  word: 'I95' 20
+ids: 12 13 14 15 16 17 18 19 20 
+str: I30 R50 A30 L50 M05 I20 M15 F00 K00 G30 R20 I60 S00 G40 J09 R10 K55
+  word: 'I30' 6
+  word: 'R50' 0
+  word: 'A30' 10
+  word: 'L50' 21
+  word: 'M05' 22
+  word: 'I20' 23
+  word: 'M15' 24
+  word: 'F00' 17
+  word: 'K00' 1
+  word: 'G30' 18
+  word: 'R20' 25
+  word: 'I60' 26
+  word: 'S00' 27
+  word: 'G40' 28
+  word: 'J09' 19
+  word: 'R10' 29
+  word: 'K55' 30
+ids: 6 0 10 21 22 23 24 17 1 18 25 26 27 28 19 29 30 
+str: J09 N30 F00 G30
+  word: 'J09' 19
+  word: 'N30' 31
+  word: 'F00' 17
+  word: 'G30' 18
+ids: 19 31 17 18 
+str: K40 R40 M50 K55 S00 L00 S70 F00 R10 G40 J09
+  word: 'K40' 32
+  word: 'R40' 33
+  word: 'M50' 34
+  word: 'K55' 30
+  word: 'S00' 27
+  word: 'L00' 35
+  word: 'S70' 11
+  word: 'F00' 17
+  word: 'R10' 29
+  word: 'G40' 28
+  word: 'J09' 19
+ids: 32 33 34 30 27 35 11 17 29 28 19 
+str: M15 I80 J00 R00 I10 M50 E10 J40 S80 S60 J20 G30 I30 J09 S30 R10 S50
+  word: 'M15' 24
+  word: 'I80' 14
+  word: 'J00' 44
+  word: 'R00' 3
+  word: 'I10' 41
+  word: 'M50' 34
+  word: 'E10' 38
+  word: 'J40' 15
+  word: 'S80' 42
+  word: 'S60' 81
+  word: 'J20' 16
+  word: 'G30' 18
+  word: 'I30' 6
+  word: 'J09' 19
+  word: 'S30' 77
+  word: 'R10' 29
+  word: 'S50' 63
+ids: 24 14 44 3 41 34 38 15 42 81 16 18 6 19 77 29 63 
+============
+Number of objects: 1000
+Fast random pair divisive (RP-Div) construction of kNN graph v. 0.1
+K=40 W=100 delta=0.000100 maxIterations=100 nndes_start=0.100000 data type 3, distance type:0
+iter=0 time: time=0.006837s
+RP-div update_count=28597 changes=71.492500%
+iter=1 time: time=0.011885s
+RP-div update_count=12499 changes=31.247499%
+iter=2 time: time=0.015616s
+RP-div update_count=7598 changes=18.995001%
+iter=3 time: time=0.019251s
+RP-div update_count=5226 changes=13.065000%
+iter=4 time: time=0.022583s
+RP-div update_count=1771 changes=4.427500%
+start nndes: time=0.025397s
+  Build old_knn, new_knn : time=0.025446s
+  START Local join: time=0.026605s
+  END Local join: time=0.190155s
+NNDES k=40 update_count_nndes=8576 changes=21.439999%
+iter=5 time: time=0.190258s
+RP-div update_count=25 changes=0.062500%
+start nndes: time=0.192953s
+  Build old_knn, new_knn : time=0.192966s
+  START Local join: time=0.194240s
+  END Local join: time=0.252807s
+NNDES k=40 update_count_nndes=386 changes=0.965000%
+iter=6 time: time=0.252930s
+RP-div update_count=0 changes=0.000000%
+start nndes: time=0.255793s
+  Build old_knn, new_knn : time=0.255820s
+  START Local join: time=0.256780s
+  END Local join: time=0.261315s
+NNDES k=40 update_count_nndes=2 changes=0.005000%
+Reached end condition: changes=0.005000% < 0.010000%, time=0.261375s
+time=0.261376s
+time[graph]=0.261377s
+knn dist: 1.000000
+i:0 density:0.885152
+i:1 density:0.940746
+i:2 density:0.881337
+i:3 density:0.907810
+i:4 density:0.934453
+i:5 density:0.930635
+i:6 density:0.873321
+i:7 density:0.890383
+i:8 density:0.890484
+i:9 density:0.890536
+i:0 density:1.129750
+i:1 density:1.062986
+i:2 density:1.134640
+i:3 density:1.101552
+i:4 density:1.070145
+i:5 density:1.074535
+i:6 density:1.145055
+i:7 density:1.123112
+i:8 density:1.122985
+i:9 density:1.122920
+time[density]=0.264177s
+Found deltas for 998/1000 points among 40 neighbors
+delta_in_knn=998 delta_in_rev_knn=0 found_delta_total=998 delta_not_found=2
+time[delta_knn]=0.264197s
+time[delta_bf]=0.264269s
+time[deltadens]=0.264269s
+time=0.264277s
+First 20 peaks:205 405 731 533 989 323 363 728 142 886 48 488 71 99 971 753 547 734 707 333 
+time[total]=0.264434s
+total_time=0.264435s neighborhood_peaks=2 num_iter=100
+NPEAKS_LIST[2]: 205 405 
+Writing Partition info to file: parts.txt
+TS size:1000
+END

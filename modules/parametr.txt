@@ -1,0 +1,262 @@
+General description of the Parametr-module and fact files.
+
+First and foremost: one must never include parametr.h directly. Instead,
+include parametr.c, which will include parametr.h. Also before including
+define FACTFILE to be the filename of the .fac-file you wish to use.
+
+FACT FILES
+
+A fact file is a collection what looks like function calls. In fact, the
+data is extracted without calling any functions by using defines and
+including the file several times with Fact(...) defined to be different
+thing each time.
+
+There are possibly several "facts" in each file. All have same structure
+regardless of the type of option they define.
+
+1.
+Identifier to be used in your program to identify the option. 
+This will become a part of an enumeration and the string itself 
+will not be usable.
+
+2.
+Text documentation. Should be briefdescription of the option. 
+It is printed in the help, and can be used as a menu entry in
+GUI programs, so it should be short, or specify different fact 
+file for the version of program that is written for GUI.
+
+3.
+The key (letter) that is used in command line.
+
+4. 
+Which number after the letter it uses (-x7,3,22)
+0 = for BOOL type only. Use NO as defaut value. (-x will set it YES)
+1 = first value after the letter x
+2 = second value after the letter x
+You can have several values after one key if you define several facts 
+with same key and different identifier (for accessing each value). 
+In this case there must not be an entry with 0 as the number and all 
+numbers must start with 1 and be consecutive. There's an internal 
+limit of 20 values.
+
+5.
+Type of the parameter: BOOL, ENUM or INT. 
+STRING type is also defined but not supported by the module.
+
+6.
+Placeholder. This is the field where the parsed value will be stored.
+Just set it 0. This value does not affect your program.
+
+7 and 8.
+Minimum (7) and maximum (8) value allowed for this parameter.
+
+9.
+Default value for the option if nothing input in the command line.
+Make sure to set it 0 if use BOOL type.
+
+10.
+If the value should be read from / written to a file. 
+In this case you must use ReadOptions and WriteOptions to actually
+read and write the values.
+
+11-20.
+Parameters 11-20 are for NAMING your values if type is ENUM.
+For other types, you just need to crate 10 unique initials.
+Program uses these only in case of ENUM. Makes code more readable.
+
+21-30.
+Strings describing the names of your enumerated values. 
+These will and should be printed on the screed, so select
+short but informative text.
+
+31.
+Last parameter tells if the value of the option should be printed 
+when processing starts. Note: you can make it also conditional.
+For example, BOOL value OverWrite is printed only if its value is YES:
+Value(OverWrite) > 0 
+
+
+PARAMETR.H
+
+By default, the fact file to include is PARAMETR.FAC, which you must
+replace with your own. Otherwise the default is used. There cannot be
+several fact files.
+
+The option symbol is defined to be '-'.
+
+An extended file mode (EXTENDEDFILEMODE) is used in a structure that is
+used to describe filename parameters (ParameterInfo), name, extension
+etc.
+
+The fact file is used to set data associated with each parameter. The
+technique used here is to define the Fact(...) in the fact file to be
+different things at different stages. Some things are done in parametr.h
+and some in parametr.c. 
+
+First an enumerated type is declared for each parameter. Then each
+identifier is defined as a value in enumeration. User of the module can
+use the id given in the fact file. All parameter identifiers will be
+contiguously in the range [First_Parameter, Last_Parameter].
+
+After this macros that allow the user of the module to use ids in the
+code are defined. Below them the actual functions are declared, but they
+shouldn't be used.
+
+The global routines will be explained in the part describing parametr.c.
+
+PARAMETR.C
+
+First allowed parameter types are defined. This includes STRING, but
+there are no references to this type elsewhere, nor do the access
+macros/functions seem to be able to handle this type (e.g. Value(x)). A
+special value of NOT_DEFINED is also defined.
+
+The data structure that contains information defined in the fact file is
+defined. It reflects the Fact(...) definition in the fact file. It will
+not store the identifier (first parameter) nor the enumeration values
+(enum of values).
+
+A function called PrintInfo() is declared. The user must provide it in
+the module that includes parametr.c. Boolean values YES and NO are also
+defined.
+
+Parameter data structure definition uses the abovementioned method of
+redefining Fact ( ... ). First an array of structures (Parameter) that
+contain the information from the fact file is defined. Now the printing
+condition values are all set to NO, i.e. they are ignored. In the next
+step a function InitializePrintingConditions() is made by redefining
+Fact(...).
+
+The access functions themselves just use the first argument as an index
+to the array and return the field of the structure.
+
+General subroutines are for internal use.
+
+int FindParameterID(char key, int number) 
+
+Returns an index to the parameter array. Key is the letter used in the
+command line and number specifies the ordinal value of the parameter for
+accessing other than first value for this key.
+
+static int ValidKey(char key)
+
+Goes through the array and seeks for the given character. returns YES if
+it finds it, NO otherwise.
+
+static int NumberOfSubParameters(char key)
+
+Returns the number of subparameters for a given key. Returns 0 if the
+key is not valid.
+
+void SetDefaultValuesForParameters()
+
+Sets the default value for each parameter as specified in the fact file.
+
+static void PrintValue(int id, int value)
+
+Prints the value. For BOOL prints either NO or YES, for ENUM prints the
+string that describes the value and for INT prints the value.
+
+    case INT:  if( value == NOT_DEFINED )
+                 {
+                 strcpy(s, "NOT DEFINED");
+
+static void PrintEnumList(int id)
+
+Prints a list of all names of the values of an ENUM type. Default value
+is also indicated. Used by PrintDocumentation.
+
+static void PrintIntDefault(int id)
+
+Prints the default value for INT type parameter along with range. Used
+by PrintDocumentation.
+
+static void PrintDefault(int id)
+
+Prints the default value. Used by PrintDocumentation.
+
+static void PrintDocumentation(char ch, int id, int number, int NumberOfSubs)
+
+Prints the documentation for the given parameter and also the default
+values using the previous functions.
+
+static void PrintSyntax(char ch, int NumberOfSubs)
+
+Prints the syntax of the given parameter. Takes into account the number
+of subparameters and uses PrintDocumentation to do the actual job.
+
+void PrintOptions()
+
+Goes through the alphabet from a to z and prints syntax for each valid
+parameter. Also prints documentation for subparameters.
+
+void PrintSelectedOptions()
+
+Prints all options that are specified to be printed. Prints
+documentation and in the same line value using PrintValue.
+
+void ReadOptions(FILE* f)
+
+Reads from a given file the values of all those options that are allowed
+to be read from a file. Note that unless InitalizePrintongConditions is
+called, nothing will be read. An internal constant BytesPerValue is used
+here.
+
+void WriteOptions(FILE* f)
+
+Like ReadOptions but writes the values.
+
+static void ParseSubParameters(char* s,
+                               int   limit,
+                               int*  parsed,
+                               int   values[])
+
+Parses a parameter value or a comma-separated list of values. Two
+consecutive commas mean that the value was not given and the
+corresponding entry in the values-array is set to NOT_DEFINED.
+
+static void SetParameterValue(char key, int number, int id, int value)
+
+Sets the value for the given (sub)parameter and checks the range.
+
+void ParseOption(char* s)
+
+Finds the values of all subparameters and sets them. Also checks if the
+option is a legal one. Extra values are ignored and omitted values (two
+consecutive commas) are caught by SetParameterValue, so NOT_DEFINED will
+never be a value for an option.
+
+static void CheckForDuplicateFileNames(int FileNameCount,
+                                       ParameterInfo PInfo[])
+
+Checks only that input and output files have different names and that
+file name hasn't been given twice. More precisely, two input files may
+not be same or one of them may not be of type DONTCARE.
+
+int ParseOptions(int ArgC, char* ArgV[])
+
+Parses all options. If string begins with OPTION_SYMBOL it is an option
+and is parsed by ParseOption, otherwise it is considered a filename.
+Returns the number of filenames it found.
+
+void ParseNames     (int          ArgC,
+                    char*         ArgV[],
+                    int           FileNameCount,
+                    int           FileNamesGiven,
+                    ParameterInfo PInfo[])
+
+Parses the filenames. Checks for too many filenames and that the
+required number is given. Names in the command line are assigned in the
+order they are given to the filenames according to their priority. Note
+that the priorities must be consecutive integers starting from zero
+(required filename). The extension is checked. Duplicate file names are
+checked.
+
+int ParseParameters(int           ArgC,
+                    char*         ArgV[],
+                    int           FileNameCount,
+                    ParameterInfo PInfo[])
+
+Simply sets default values and calls ParseOptions and ParseNames to
+parse the command line. Use this function.
+

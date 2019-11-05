@@ -1,0 +1,134 @@
+INTERFC-module documentation
+Last updated 27.7.99 (IAK)
+
+                      ------------------
+                      BRIEF DOCUMENTAION
+                      ------------------
+
+PURPOSE
+
+   Module package includes only operative functions, no interface.
+   The routines should therefore be silent for being compatible
+   both in CONSOLE (Dos/Unix), and in GUI (Windows) environments.
+   In particular, printf and exit routines are not allowed.
+   This module gives generic replacements of these routines,
+   plus some additional features.
+
+MOST IMPORTANT ROUTINES
+
+   PrintMessage(s): Replacement for printf (informative messages).
+   ErrorMessage(s): Replacement for printf (fatal error messages).
+   ExitProcessing(a): Replacement for exit.
+
+PrintMessage:
+
+   For printing warnings and side information to stdout.
+   CONSOLE: Print messages -> continue program. Equivalent to printf.
+   WINDOWS: Print message to module window -> Continue program.
+
+ErrorMessage:
+
+   For printing fatal error messages to stderr. It is recommended that
+   the program is cancelled after the message, either by calling
+   ExitProcess, or by the user in the interactive software.
+   CONSOLE: Print message -> Wait user reponse or exit program.
+   WINDOWS: Show message in message box -> Wait user to click OK.
+
+CONVERTING EXISTING MODULES:
+
+   1. printf(s) -> PrintMessage(s)
+   2. printf(s),exit -> ErrorMessage(s), ExitProcessing()
+      Note: if several printf calls are used to output single error
+	message, they should be combined into a single ErrorMessage-call.
+   3. exit -> ErrorMessage("Fatal error"), ExitProcessing()
+
+
+                            ------------------
+                            COMPLETE REFERENCE
+                            ------------------
+
+INFORMATION OUTPUT
+
+   OpenInfoFlow: Sets the output stream. All output will be directed
+   to this stream until the info flow is re-opened to another stream.
+   Default in CONSOLE is stdout. If this is ok, then this routine is
+   not needed to call at all.
+      GUI:     everything goes to "Process Output" -window
+      CONSOLE: 0 - all to stdout, 
+		   1 - PrintMessage to stderr, PrintProgramMessage to stdout
+
+   CloseInfoFlow: Flushes the output stream. Sort of clean-up.
+
+   PrintMessage: print message in modules stream.
+
+   PrintProgramMessage: print message in program stream.
+
+   ErrorMessage: Show error message in standard message box or print it
+   to stderr.
+
+   MessageWithQuestion: Same, but defines if there are those controls,
+   return true if "yes" is pressed and false if "no" is pressed.
+
+PROGRAM TERMINATION
+
+   ExitProcessing(a): Exit the program (CONSOLE), or process (GUI).
+	Note: under GUI it is thought that this function exits a thread,
+	not the whole program. a is the return value and certain values
+	may/will result in program termination. However, it is preferable 
+	to return from the processing function with return value a than call
+	ExitProcessing. These return values are useful under GUI.
+       0 = EVERYTHING_OK
+		Under GUI this means that thread returns normally.
+      -1 = FATAL_ERROR
+		User is notified of failure and program terminates.
+      -2 = EXIT_REQUEST_HONOURED
+		Program noted that user requested exit and honoured it, not
+		finishing the task. Controlled exit, including cleanup, is
+		required, as under GUI user can perform this or other task
+		after exit request.
+      -3 = RECOVERABLE_ERROR
+		An error was noted that resulted in a controlled exit. Trying
+		again should result in proper functioning of the function.
+		GUI program will not exit if this is the thread return value,
+		instead, user can try again.
+	-4 = RECOVERABLE_ERROR_UNCONTROLLED_EXIT
+		An error was noticed that resulted in an uncontrolled exit, i.e.
+            ExitProcessing was called from within some module called by another.
+		User should be able to save any unsaved files and then exit the
+		program normally. As a result of the uncontrolled exit the program
+		leaks resources, usually memory. User can continue using the program
+		but it is not recommended due to resource leakage.
+
+   ExitRequestHonored: Returns non-zero if program/thread checks if 
+	user has requested exit.
+
+   SetExitRequestHonored: Tells if program/thread calls ExitRequested,
+	default is not honored. Calling with non-zero value will result in
+	user-visible choice to terminate the thread.
+
+   ExitRequested(): Checks if stopping of process has been requested.
+	If SetExitRequestHonored hasn't been called with non-zero value
+	this function has no effect under GUI.
+
+PROGRESS INDICATOR
+
+   SetProgressVisibility: select the quiet level (1/0).
+
+   OpenProgressWindow: Opens progress window if progress visibility
+   is set to 1 and the window is not opened already.
+
+   CloseProgressWindow: Close progress window. Does nothing if progress
+   visibility is set to 0 or not opened.
+
+   UpdateProgressBar(x,y): Update the processed (%) counter.
+   (x,0) result in printing "complete",
+   (0,y) results in "wait...".
+   Under Windows, the above special values just set the bar length to full/zero.
+
+   UpdateFancyProgressBar: More fancy version.
+	Note: under GUI this is precisely the same as the previous one.
+
+   UpdateProgressLabel: Changes the progress bar title.
+
+   FreezeProgress: Goes to North Pole for having a Coke.
+

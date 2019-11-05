@@ -1,0 +1,382 @@
+PARAMETR-module documentation; parsing command line parameters
+Last updated 14.1.97 (PF)
+
+GENERAL
+
+    PARAMETR module contains almost all that is needed for parsing
+    command line parameters. Its implementation may be little bit
+    dirty and lots of C tricks are used, but the usage of the module
+    is very easy once you know how to use it! The module consists of
+    the following files:
+
+    PARAMETR.DOC
+       This file.
+
+    PARAMETR.H
+       Interface for the module. This must be included in the
+       program using the module.
+
+    PARAMETR.C
+       Implementation of the module. You do not necessarily need to
+       know the details. Only the understanding how to use it via
+       Fact file and the .H file is important.
+
+    PARAMETR.FAC
+       Fact file in ASCII format. The user defines here what kind of
+       command line parameters the program uses. This is the ONLY file
+       that is allowed to edit by the user.
+
+
+FORMAT OF COMMAND LINE
+
+    The module supports command lines parameters with the following form:
+
+       PROGNAME -O -Q2 name1 name2 -X15 -name3 -S5,0,13 -N42
+
+    The first one is the name of the program. Other strings
+    (separated by blanks) are either:
+
+       1. Names
+       2. Options
+
+    The options can be given in any order in the command line. Only the
+    names are assumed to appear in predefined order in respect to each
+    other. The names are any strings starting with any other character
+    but the option symbol ('-'). They are considered here as file names,
+    but can be used in any way the user likes.
+
+    Three types of options appear:
+
+       1. Boolean options (-O)
+       2. Numerical options (-Q2)
+       3. Mulitple numerical options (-S5,0,13)
+
+    Each of them are handdled as variables of the type INTEGER.
+    The combined option allows to parse several parameter values
+    from the same option symbol. For example -S5,0,13 implies three
+    different parameters, whose values are input here as 5, 0 and 13.
+    Boolean options can have only 0/1 value. If the option for any
+    defined parameter is not found in the command line, predefined
+    default value will be used.
+
+
+USAGE OF THE OPTIONS
+
+    Once the command line is parsed, each parameter is assigned by
+    a system variable of any name the user defines. Its value is
+    then available in the program via the macro:
+
+       Value(OptionName)
+
+
+FACT FILE
+
+   A fact must be defined in the fact file for every parameter used in
+   the program. A fact can look like this:
+
+      Fact( ModellingType,
+            "Modelling type",
+            'M',    1,  ENUM,   0,    0,   2,      1,      NO,
+            STATIC, SEMIADAPTIVE, DYNAMIC, mt4, mt5, mt6, mt7, mt8, mt9, mt10,
+            "Static", "Semi-adaptive", "Dynamic", 0, 0, 0, 0, 0, 0, 0 )
+
+   The value of this fact is given in the command line, for example:
+
+      -M5
+
+   In the software the user can now check its value via the macro:
+
+      Value(ModellingType)
+
+   The fiels in the facts are:
+
+      OptionName
+         The name for the parameter. In the example this is ModellingType.
+         The OptionName cannot be used directly, but the macros (explained
+         later) must be used.
+
+      Document
+         String description of the parameter. In the example "Modelling type".
+         This string is printed in the help text, etc.
+
+      Key (*)
+         Option symbol from which the parameter value is obtained (in the
+         example 'M').
+
+      Number (*)
+         Option subparameter (in the example 1).
+
+         The fields KEY and NUMBER together identifies uniquely the
+         parameter. The NUMBER defines the order in which the parameter
+         is parses after the KEY in case of multiple numerical option.
+         For eaxmple, in the example combination KEY='M', NUMBER=1
+         means that the value must be input as -Mx. NUMBER=2 would
+         imply -Mx1,x2  where different facts must be defined for x1
+         and x2.
+
+         If you do not need the multiple option possibility, then use
+         always 1 for NUMBER!
+
+         In case of BOOLEAN symbols where no numbers are needed,
+         use 0 for NUMBER! The logic is the following. If the
+         parameter is not given, its default value is used (must
+         be set to FALSE). If the parameter appear in the command
+         line (-M), then its value will be TRUE.
+
+      Type
+         Defines the type of the parameter (ENUM in the example). The
+         following types are supported:
+
+              INT  = Integer.
+              ENUM = Enumerative type (integer in practice)
+              BOOL = Boolean type with values: (1=YES, 0=NO).
+
+         If the type is set to ENUM, the used enumerative values are
+         set to those give in the ENUM OF VALUES fields, and their
+         string representations in the NAME OF VALUES fields. The
+         upper limit for ENUM values is set to 10.
+
+      Value
+         This is the field in the C data structure where the value is
+         stored. This field is not needed in the fact file, but cannot
+         be avoided. So but here 0 value always. The value does not
+         matter since the value is set automatically in the parsing.
+         If the corresponding option is not given, the predifined
+         default value is used.
+
+      Min
+         The smallest allowed value for the parameter. 0 in the example.
+         Must be defined for ENUM and BOOLEAN types also!
+
+      Max
+         The greatest allowed value for the parameter. 2 in the example.
+         Must be defined for ENUM and BOOLEAN types also! MIN and MAX
+	 together defines the range of the parameter. It is important to
+	 set these values correctly, for ENUM types also! For BOOLEAN
+	 option, these are not used, but you can define the as Min=0,
+	 Max=1 for the sake of clarity.
+
+      Default
+	 Default value is given here. Make sure it is within the range
+	 Min..Max.
+
+      SaveToFile
+	 This parameter is actualy not used in the module, but its usage
+	 its up to the program. If you have no idea how to use it, set it
+	 to NO, or zero. Originally it was meant to use in compression
+	 programs to indicate which parameter values should be stored
+	 in the compressed file so that decoder can get them there and
+	 the user does not need to no these when using the compression
+	 program. But as said, depends on the program how this is used.
+
+      Enum of values
+	 Names of ENUM values. All 10 names must be uniquely defined,
+	 even in the case of INT and BOOL types. In the example they
+	 are STATIC, SEMIADAPTIVE, and DYNAMIC. For example, in the
+	 program these can be utilized:
+
+	    if( Value(ModellingType)==DYNAMIC ) ...
+
+	 The primary purpose of these names is to make the program
+	 more readable and thus support self-documentary coding style.
+	 Note that unique dummy names must be created for those values
+	 names that are not used. In the of INT and BOOL types all 10
+	 names are dummy.
+
+      Name of values
+	 String representation for the above ENUM values. In the example
+	 they are "Static", "Semi-adaptive", "Dynamic". The names are
+	 used in the help text, etc.
+
+
+SUPPORTED ROUTINES
+
+	PARAMETR.H file includes all you need including general purpose
+	routines for help text, macros to access the fact fields, etc.
+	The following macros are found. In most cases you only need the
+	Value-macro and nothing else!! The rest are rarely used, for
+	example, when you want to print better help text than the
+	automatic PrintOption routine supports.
+
+	Macro:		 Type:	  Function:
+        --------         -------  ---------
+	Document(x)	 char*	  Returns pointer to the string giving the
+				  string representation of the parametr x.
+
+	Key(x)		 char	  Returns the option character where the
+				  parameter x was parsed.
+
+	Number(x)	 int	  Returns the order number of the parameter
+				  in respect to other parameters parsed from
+				  the same option.
+
+	Type(x) 	 int	  Returns the parameter type as INTEGER.
+
+	Value(x)	 int	  Returns the value of the parameter.
+
+	SetValue(x,v)	 void	  Set the value v for parameter x.
+
+	Max(x)		 int	  Returns the upper limit for the parameter.
+
+	Min(x)		 int	  Returns the lower limit for the parameter.
+
+	Default(x)	 int	  Returns the default value of the parameter.
+
+	SaveToFile(x)	 int	  Return boolean value whether the parameter
+				  should be save into the compressed file.
+
+	NameOfValue(x,v) char*	  Return pointer to a string representing
+				  the enum value v for parametr x.
+
+	Beside these macros, the following routines are recommended to
+	be used in the program:
+
+           enum __ParameterCoding
+           { Omit, FixedBits, FELICS, mt4, mt5, mt6, mt7, mt8, mt9, mt10 };
+
+	Routine:		  Function:
+	--------		  ---------
+
+	ParseParameters()	  This routine performs the command line
+				  parsing. Option values are automatically
+				  set, errorneous values rejected, file
+				  names parsed and returned.
+
+	PrintOptions()		  Prints the supported options. To be used
+				  as a part of the help text.
+
+	PrintSelectedOptions(..)  Prints the chosen parameter values.
+				  To be used after command line is
+				  parsed but before the processing starts.
+
+	ParseOption(char* s)	  This routine is needed ONLY if you are
+				  not satisfied with the ParseParameters
+				  routine but want to implement you own.
+				  By this way you can handdle the filen
+				  names etc., but let the module take
+				  care the options.
+
+	SetDefaultValuesForParameters()
+				  This routine is already called from the
+				  ParseParameters routine, so you do not
+				  needed. Only if you implement your own
+				  routine, you might need this.
+
+	InitializePrintingConditions()
+				  --""--
+
+	ReadOptions(f)	 FILE* f  Reads option values from compressed file.
+				  To be used together with the SaveToFile
+				  field.
+
+	WriteOptions(f)  FILE* f  Save the selected parameters (for which
+				  the SaveToFile field is set to 1) to the
+				  compressed file.
+
+
+
+USAGE OF THE PARSEPARAMETERS ROUTINE
+
+   1) Define ParameterInfo-type variable and initialize it as follows:
+
+      ParameterInfo paraminfo[N] = { { Name1, "ext1", p1, FT1 },
+				     { Name2, "ext2", p2, FT2 },
+				       (...)
+				     { NameN, "extN", pN, FTN } };
+
+      This program recognizes N parameters (file names) which are all
+      stored into strings Name1, Name2, etc. If no file extension is
+      given in the parameter, the name is catenated with the extension
+      "ext". No extension is catenated if it is defined as "".
+
+      The third field is a "priority number": 0 means that this file
+      name must always be given. The other files are numbered uniquely
+      so that the first used parameter is prioritized as 1, the second
+      as 2, and so on.
+
+      The last field defines the type of the file:
+
+	INFILE	     Input file
+	OUTFILE      Output file
+	INOUTFILE    Input/outputfile
+	DONTCARE     The usage of this file does not matter.
+
+      On the basis of these information, ParseParameters checks that
+      same names have not been given to the files, except if:
+
+	a) the files are both input files
+	b) the other file is of the DONTCARE type.
+
+      Example 1:
+
+      ParameterInfo paraminfo[3] =  { { TRFileName, "ts", 0, INFILE },
+				      { InFileName, "cb", 1, INFILE },
+				      { OutFileName,"cb", 0, OUTFILE} };
+
+      The program can be used either with two parameters, which are
+      TRFileName and OutFileName, or with three parameters which are
+      TRFileName, InFileName and OutFileName (in this order). The
+      optional file name is here given in the middle of the obligatory
+      file names.
+
+      Example 2:
+
+      ParameterInfo paraminfo[4] =  { { TRFileName,   "ts", 0, INFILE },
+				      { InFileName,   "cb", 1, INFILE },
+				      { OutFileName,  "cb", 0, OUTFILE},
+				      { DebugFileName, "" , 2, OUTFILE} };
+
+      The difference between the previous one is that the user may give
+      addition file DebugFileName. No explicit extension can be give
+      by default.
+
+      Example 3:
+
+      ParameterInfo paraminfo[4] =  { { TRFileName,   "ts", 0, INFILE },
+				      { InFileName,   "cb", 2, INFILE },
+				      { OutFileName,  "cb", 0, OUTFILE},
+				      { DebugFileName, "" , 1 ,OUTFILE} };
+
+      This, on the other hand, differs from the previous when the user
+      gives three parameters. They are now: TRFileName, OutFileName,
+      DebugFileName, whereas in example 2 the interpretation was the
+      same as in example 1.
+
+
+   2) ParseParameters routine is called like this:
+
+	ParseParameters(argc, argv, N, paraminfo);
+
+      where N is the number of parameters. argc ja argv are the
+      parameters of main().
+
+
+   Notifications:
+   --------------
+
+     When user gives too few or too much parameters, an error message
+     is shown and the info text of the program is printed by calling
+     PrintInfo(), which is expected to appear in the main module.
+
+     The Parametr module includes the file module.
+
+
+   Features often used but not supported by parametr module:
+   ---------------------------------------------------------
+
+     1. If file name is given, it is taken from the previous file name.
+	This is typical for processing and compression software for
+	which identical file names are possible because the file types
+	(and extenstion!) are different. This kind of situations must
+	be solve in the main module. Do NOT set the priority to 0.
+
+     2. If file name is given, a default file name is used. This is
+	typical for VQ software using default codebook, softwares
+	outputting additional informative files. This situation must
+	be solved similarly than the previous one - in main module.
+
+     3. Input/output file type can be different. Typical for image
+	processing software applicable to all types of PBM/PGM/PPM.
+	The file type (and extension) are explicitely determined
+	in the main module by DetermineFileType routine, or similar.
+
