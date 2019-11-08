@@ -131,6 +131,9 @@ DataSet *loadSetData(std::string infname) {
     int id = -1;
     int setSize = 0;
     while (std::getline(ss, item, ' ')) {
+      if(item.size() < 1) {
+      continue;
+      }    
       if (m.find(item) == m.end()) {
         m[item] = numItems;
         numItems++;
@@ -138,7 +141,7 @@ DataSet *loadSetData(std::string infname) {
       }
       id = m[item];
       if (show_sets) {
-        cout << "  word: '" << item << "' " << id << endl;
+        cout << "  word: '" << item << "' mapping:" << id << endl;
       }
       buf[setSize] = id;
       setSize++;

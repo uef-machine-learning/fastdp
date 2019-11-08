@@ -19,11 +19,11 @@ end
 def show_cluster_samples(clusters)
     k=clusters.size
     #clu_str =""
-    for i in 1..(k-1)
+    for i in 0..(k-1)
         #puts "#{i}:"+clusters[i].sample(10).inspect
         items = clusters[i].sample(20).collect{|x|"<li>#{x}</li>"}.join(" ")
         #puts "#{i} #{clusters[i].size} "+clusters[i].sample(10).inspect
-        puts "<hr/><b>Cluster #{i} (size=#{clusters[i].size}</b>) <ul>#{items}</ul>"
+        puts "<hr/><b>Cluster #{i+1} (size=#{clusters[i].size}</b>, 20 samples) <ul>#{items}</ul>"
     end
 end
 
