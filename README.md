@@ -61,7 +61,7 @@ For a faster, but lower quality version, use dice distance and disable use of NN
 
 Dice distance works also for long strings of around 140 characters.
 
-### Categorical/set data, Jaccard distance
+### Categorical/set data, Dice distance
 This feature is somewhat experimental and has not been tested thoroughly.
 ```
 ./denc  --neighbors=30 --clusters=2000  --type=set --knng-delta=0.05 --dfunc=dice --out-pa=set_data.pa --knng-nndes 0.0 set_data.txt
