@@ -23,12 +23,12 @@ make dencl
 ### Numerical (vectorial) data
 Cluster vectorial (numerical) S1 dataset to 15 clusters by first constructing kNN graph k=30 neighbors:
 ```
-./denc --neighbors 30 --clusters 15  --type=vec --knng-delta=0.1 data/s1.txt --calcnbprop 1 --out-pa=data/output_s1.pa
+./denc --neighbors 30 --clusters 15  --type=vec  data/s1.txt  --out-pa=data/output_s1.pa
 ```
 
 Same as above, but also evaluate clustering based on ground truth (s1-label) by calculating CI and NMI values: 
 ```
-./denc data/s1.txt --neighbors 30 --clusters 15  --type=vec --knng-delta=0.1 --gt-pa=data/s1-label.pa  --out-pa=data/output_s1.pa
+./denc data/s1.txt --neighbors 30 --clusters 15  --type=vec --gt-pa=data/s1-label.pa  --out-pa=data/output_s1.pa
 ```
 
 ### String data
