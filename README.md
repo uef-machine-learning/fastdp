@@ -82,4 +82,17 @@ Line ends with "\n" characters. Files end with "\n"
 
 Output .pa -file contains header information and cluster labels for each input item.
 
+## Dataset generation (MATLAB)
+
+Create a 2D dataset with a maximum of 20 clusters. Save to file 'worms_88.txt'.
+```
+gen_2d_worms(88,20);
+```
+
+Create a 64D dataset with a maximum of 20 clusters. Save to file 'worms_1064.txt'.
+```
+gen_high_dim_worms(1064,20,64);
+```
+
+In -labels file first column is label of data point, second column: 2=noise, 1=normal.
 
