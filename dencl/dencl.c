@@ -14,7 +14,6 @@
 #include "argtable3.h"
 #include "dencl.h"
 
-
 /*
  * Calculate density, delta and nearest high density pointer values based on
  * knn graph. To be used for density peaks clustering.
@@ -319,6 +318,7 @@ int main(int argc, char *argv[]) {
   int clusters = 256;
   int data_type = 1;
   int verbose = 1;
+  int output_pa_header = 1;
   int knng_algo = 0;
   int num_iter = 100; // Run RP-div for maxknum_iter iterations
   int W = 50;
@@ -347,6 +347,8 @@ int main(int argc, char *argv[]) {
   struct arg_dbl *knng_start_nndes;
 
   struct arg_lit *help;
+  struct arg_lit *pa_header;
+  struct arg_lit *pa_no_header;
   struct arg_end *end;
 
   // printf("ll:%d\n", levenshtein("abcde", "a2zde"));
@@ -356,11 +358,12 @@ int main(int argc, char *argv[]) {
 
       numNeighbors = arg_intn(NULL, "neighbors", "<n>", 0, 1, "knn neighbors"),
       bfsize = arg_intn("W", "bfsize", "W", 0, 1, "use bf when < W"),
-      a_num_iter = arg_intn("I", "num_iter", "<n>", 0, 1, "End condition: Number of RKNNG iterations  "),
+      a_num_iter =
+          arg_intn("I", "num_iter", "<n>", 0, 1, "End condition: Number of RKNNG iterations  "),
       numClusters = arg_intn(NULL, "clusters", "<n>", 0, 1, "number of clusters"),
       rngSeed = arg_intn(NULL, "seed", "<n>", 0, 1, "random number seed"),
       verboseArg = arg_intn("Q", "verbose", "<n>", 0, 10, "Verbose level"),
-      calcnbprop = arg_intn("", "calcnbprop", "<n>", 0, 10,
+      calcnbprop = arg_intn(NULL, "calcnbprop", "<n>", 0, 10,
                             "Calculate neighborhood peak proportion (diagnostic)"),
       distfunc = arg_str0(NULL, "dfunc", "<FUNC>",
                           "Distance function:\n"
@@ -369,6 +372,10 @@ int main(int argc, char *argv[]) {
                           "     lev = Levenshtein distance (for strings, default)\n"
                           "     dice = Dice coefficient / bigrams (for strings)\n"),
       out_pa_fn = arg_filen(NULL, "out-pa", "<file>", 0, 1, "output partition file"),
+      pa_header = arg_litn(NULL, "pa-header", 1, 10, "Include header in partition file, (default)"),
+      pa_no_header =
+          arg_litn(NULL, "pa-no-header", 0, 1, "Do not include header in partition file"),
+
       out_densdelta_fn = arg_filen(NULL, "out-dd", "<file>", 0, 1, "output density/delta filename"),
       gt_pa_fn = arg_filen(NULL, "gt-pa", "<file>", 0, 1, "Ground truth partition file"),
       out_cb_fn = arg_filen(NULL, "out-cb", "<file>", 0, 1, "output centroids file"),
@@ -379,7 +386,8 @@ int main(int argc, char *argv[]) {
           arg_dbln(NULL, "knng-delta", "<FLOAT>", 0, 1, "Stop when delta < STOP (knng/RP-div)"),
       knng_start_nndes =
           arg_dbln(NULL, "knng-nndes", "START", 0, 1, "Start using nndes when delta < START"),
-      infn = arg_filen(NULL, NULL, "<file>", 1, 1, "input files"), end = arg_end(20),
+      infn = arg_filen(NULL, NULL, "<file>", 1, 1, "input files"),
+      end = arg_end(20),
   };
 
   int ok = 1;
@@ -399,7 +407,14 @@ int main(int argc, char *argv[]) {
   if (bfsize->count > 0) {
     W = bfsize->ival[0];
   }
-  
+
+  if (pa_no_header->count > 0) {
+    output_pa_header = 0;
+  }
+  if (pa_header->count > 0) {
+    output_pa_header = 1;
+  }
+
   if (a_num_iter->count > 0) {
     num_iter = a_num_iter->ival[0];
   }
@@ -445,9 +460,9 @@ int main(int argc, char *argv[]) {
     data_type = 2;
   } else if (dtype->count > 0 && strcmp(dtype->sval[0], "vec") == 0) {
     data_type = 1;
-   } else if (dtype->count > 0 && strcmp(dtype->sval[0], "set") == 0) {
+  } else if (dtype->count > 0 && strcmp(dtype->sval[0], "set") == 0) {
     data_type = 3;
-   
+
   } else {
     printf("Must specify data type: vec|txt\n");
   }
@@ -478,11 +493,11 @@ int main(int argc, char *argv[]) {
     knng_algo = 0;
   }
 
-  printf("clusters=%d knng_algo=%d knng_endc:%f start_nndes:%f data_type=%d\n", clusters, knng_algo, endcond,
-         start_nndes, data_type);
+  printf("clusters=%d knng_algo=%d knng_endc:%f start_nndes:%f data_type=%d\n", clusters, knng_algo,
+         endcond, start_nndes, data_type);
   printf("time[start]=%fs\n", 0.0); // TODO: output inside get_knng??
-  knng =
-      get_knng(infn->filename[0], neighbors, data_type, knng_algo, endcond, start_nndes, W, dfunc, num_iter);
+  knng = get_knng(infn->filename[0], neighbors, data_type, knng_algo, endcond, start_nndes, W,
+                  dfunc, num_iter);
   printf("time[graph]=%fs\n", get_elapsed_time());
   fflush(stdout);
 
@@ -524,7 +539,7 @@ int main(int argc, char *argv[]) {
   }
   printf(" neighborhood_peaks=%d", neighborhood_peaks->count);
   printf(" num_iter=%d", num_iter);
-  
+
   printf("\n");
 
   if (neighborhood_peaks->count < 1000) {
@@ -540,7 +555,7 @@ int main(int argc, char *argv[]) {
   }
   if (out_pa_fn->count > 0) {
     printf("Writing Partition info to file: %s\n", out_pa_fn->filename[0]);
-    WritePartitioning2(out_pa_fn->filename[0], &P, NULL, 1 /*=AllowOverWrite*/, 1 /*=writeHeader*/);
+    WritePartitioning2(out_pa_fn->filename[0], &P, NULL, 1 /*=AllowOverWrite*/, output_pa_header /*=writeHeader*/);
   }
 
   free(peaks);
@@ -549,8 +564,6 @@ int main(int argc, char *argv[]) {
   printf("END\n");
   return 0;
 }
-
-
 
 /************************************************************/
 // Based on
@@ -592,9 +605,9 @@ void freeArray(Array *a) {
 }
 /*****/
 // struct VoidArr {
-  // int *array;
-  // size_t count;
-  // size_t size;
+// int *array;
+// size_t count;
+// size_t size;
 // };
 
 void initVoidArr(VoidArr **_a, size_t initialSize) {
@@ -626,9 +639,7 @@ void freeVoidArr(Array *a) {
   a->count = a->size = 0;
 }
 
-
 /************************************************************/
-
 
 void init_minFind(minFind *mf) {
   mf->min_id = -1;
@@ -642,8 +653,6 @@ void checkMin(minFind *mf, int id, float val) {
     mf->min_id = id;
   }
 }
-
-
 
 // Calculate portion of neighbors for which this peak is the nearest neighborhood peak
 // Expected to be around 1.0
@@ -678,7 +687,6 @@ float calc_nearest_peak_portion(int itemid, kNNGraph *knng, Array *neighborhood_
   return portion;
 }
 
-
 // From
 // http://www.qnx.com/developers/docs/6.5.0/index.jsp?topic=/com.qnx.doc.neutrino_lib_ref/v/vprintf.html
 int quiet_level = 0;
@@ -692,4 +700,3 @@ void debug(const char *format, ...) {
     va_end(arglist);
   }
 }
-
