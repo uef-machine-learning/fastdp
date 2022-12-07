@@ -1,18 +1,33 @@
+//#ifdef Py_PYTHON_H
+// #include <Python.h>
+// #include <numpy/arrayobject.h>
+// #endif
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <assert.h>
 #include "rknng/rknng_lib.h"
 
-#include "cb.h"
-#include "file.h"
+extern "C" {
 #include "stack.h"
-#include "cbevi/evi.h"
+#include "sort.h"
+}
 
 #include <float.h>
 
-#include "argtable3.h"
 #include "dencl.h"
+
+#ifdef Py_PYTHON_H
+// PyObject *py_densityPeaks(PyArrayObject *py_v, int k) {
+  // PyObject *ret;
+  // printf("py_densityPeaks\n");
+
+  // ret = Py_BuildValue("i", 99);
+  // return ret;
+  // // , int w, float nndes, float delta, int maxiter, int dtype) {
+// }
+#endif
 
 /*
  * Calculate density, delta and nearest high density pointer values based on
@@ -22,7 +37,7 @@ int knnGraphDPstats(
     // INPUT:
     kNNGraph *knng, int check_knn_for_delta,
     // OUTPUT:
-    double **density_p, double **delta_p, double **nearestHighDens_p, Array **neighborhood_peaks_p,
+    double **density_p, double **delta_p, int **nearestHighDens_p, Array **neighborhood_peaks_p,
     int calcnbprop) {
   int i, j, N, neighbor, deltaFound;
   N = knng->size;
@@ -299,270 +314,14 @@ void WriteDensityPeaksInfo(char *FileName, int *nearestHighDens, double *dens, d
   int i;
   FILE *f;
 
-  f = FileOpen(FileName, OUTPUT, 1);
+  // f = FileOpen(FileName, OUTPUT, 1);
+  f = fopen(FileName, "w");
+
   for (i = 0; i < N; i++) {
     fprintf(f, "%d %f %f\n", nearestHighDens[i], dens[i], delta[i]);
     // printf("%i %i\n",i, list[i]);
   }
   fclose(f);
-}
-
-// TODO:
-// extern struct knng_options g_options;
-
-int main(int argc, char *argv[]) {
-  int i;
-  TRAININGSET *TS = (TRAININGSET *)malloc(sizeof(TRAININGSET));
-  kNNGraph *knng = NULL;
-  int neighbors = 20;
-  int clusters = 256;
-  int data_type = 1;
-  int verbose = 1;
-  int output_pa_header = 1;
-  int knng_algo = 0;
-  int num_iter = 100; // Run RP-div for maxknum_iter iterations
-  int W = 50;
-  float endcond = 0.01;    // For RP-div knng algorithm
-  float start_nndes = 0.1; // For RP-div knng algorithm
-
-  struct arg_file *infn;
-  struct arg_file *out_pa_fn;
-  struct arg_file *out_cb_fn;
-  struct arg_file *gt_pa_fn;
-
-  struct arg_file *out_densdelta_fn;
-
-  struct arg_int *numNeighbors;
-  struct arg_int *bfsize;
-  struct arg_int *numClusters;
-  struct arg_str *dtype;
-  struct arg_int *rngSeed;
-  struct arg_int *verboseArg;
-  struct arg_int *calcnbprop;
-  struct arg_int *a_num_iter;
-
-  struct arg_str *distfunc;
-  struct arg_str *algo;
-  struct arg_dbl *knng_endc;
-  struct arg_dbl *knng_start_nndes;
-
-  struct arg_lit *help;
-  struct arg_lit *pa_header;
-  struct arg_lit *pa_no_header;
-  struct arg_end *end;
-
-  // printf("ll:%d\n", levenshtein("abcde", "a2zde"));
-
-  void *argtable[] = {
-      help = arg_litn(NULL, "help", 0, 1, "display this help and exit"),
-
-      numNeighbors = arg_intn(NULL, "neighbors", "<n>", 0, 1, "knn neighbors"),
-      bfsize = arg_intn("W", "bfsize", "W", 0, 1, "use bf when < W"),
-      a_num_iter =
-          arg_intn("I", "num_iter", "<n>", 0, 1, "End condition: Number of RKNNG iterations  "),
-      numClusters = arg_intn(NULL, "clusters", "<n>", 0, 1, "number of clusters"),
-      rngSeed = arg_intn(NULL, "seed", "<n>", 0, 1, "random number seed"),
-      verboseArg = arg_intn("Q", "verbose", "<n>", 0, 10, "Verbose level"),
-      calcnbprop = arg_intn(NULL, "calcnbprop", "<n>", 0, 10,
-                            "Calculate neighborhood peak proportion (diagnostic)"),
-      distfunc = arg_str0(NULL, "dfunc", "<FUNC>",
-                          "Distance function:\n"
-                          "     l2 = euclidean distance (vectorial, default)\n"
-                          "     mnkw = Minkowski distance (vectorial)\n"
-                          "     lev = Levenshtein distance (for strings, default)\n"
-                          "     dice = Dice coefficient / bigrams (for strings)\n"),
-      out_pa_fn = arg_filen(NULL, "out-pa", "<file>", 0, 1, "output partition file"),
-      pa_header = arg_litn(NULL, "pa-header", 1, 10, "Include header in partition file, (default)"),
-      pa_no_header =
-          arg_litn(NULL, "pa-no-header", 0, 1, "Do not include header in partition file"),
-
-      out_densdelta_fn = arg_filen(NULL, "out-dd", "<file>", 0, 1, "output density/delta filename"),
-      gt_pa_fn = arg_filen(NULL, "gt-pa", "<file>", 0, 1, "Ground truth partition file"),
-      out_cb_fn = arg_filen(NULL, "out-cb", "<file>", 0, 1, "output centroids file"),
-      dtype = arg_str0(NULL, "type", "<vec|txt>", "Input data type: vectorial or text."),
-      algo = arg_str0(NULL, "knng-algo", "<rpdiv|brutef>",
-                      "k-nearest neighbor graph algorithm: RP-Div or Bruteforce"),
-      knng_endc =
-          arg_dbln(NULL, "knng-delta", "<FLOAT>", 0, 1, "Stop when delta < STOP (knng/RP-div)"),
-      knng_start_nndes =
-          arg_dbln(NULL, "knng-nndes", "START", 0, 1, "Start using nndes when delta < START"),
-      infn = arg_filen(NULL, NULL, "<file>", 1, 1, "input files"),
-      end = arg_end(20),
-  };
-
-  int ok = 1;
-  int nerrors = arg_parse(argc, argv, argtable);
-
-  if (rngSeed->count > 0) {
-    printf("Set RNG seed: %d\n", rngSeed->ival[0]);
-    srand(rngSeed->ival[0]);
-  } else {
-    srand(time(NULL));
-  }
-
-  if (numNeighbors->count > 0) {
-    neighbors = numNeighbors->ival[0];
-  }
-  W = (int)neighbors * 2.5;
-  if (bfsize->count > 0) {
-    W = bfsize->ival[0];
-  }
-
-  if (pa_no_header->count > 0) {
-    output_pa_header = 0;
-  }
-  if (pa_header->count > 0) {
-    output_pa_header = 1;
-  }
-
-  if (a_num_iter->count > 0) {
-    num_iter = a_num_iter->ival[0];
-  }
-  // debug("num_iter=%d\n", num_iter);
-
-  if (knng_endc->count > 0) {
-    endcond = (float)knng_endc->dval[0];
-  }
-  if (knng_start_nndes->count > 0) {
-    start_nndes = (float)knng_start_nndes->dval[0];
-  }
-
-  if (verboseArg->count > 0) {
-    verbose = verboseArg->ival[0];
-  }
-
-  if (numClusters->count > 0) {
-    clusters = numClusters->ival[0];
-  }
-
-  int dfunc = 0;
-  if (distfunc->count > 0) {
-    if (strcmp(distfunc->sval[0], "l2") == 0) {
-      printf("Distance function: %s\n", distfunc->sval[0]);
-      dfunc = 0;
-    } else if (strcmp(distfunc->sval[0], "mnkw") == 0) {
-      dfunc = 1;
-      //      printf("Distance function: minkowski (p=%f)\n", g_options.minkowski_p);
-    }
-    if (strcmp(distfunc->sval[0], "dice") == 0) {
-      dfunc = 10;
-      printf("Distance function: Dice\n");
-    }
-  }
-
-  if (infn->count <= 0) {
-    ok = 0;
-  }
-  if (dtype->count <= 0) {
-    ok = 0;
-  }
-  if (dtype->count > 0 && strcmp(dtype->sval[0], "txt") == 0) {
-    data_type = 2;
-  } else if (dtype->count > 0 && strcmp(dtype->sval[0], "vec") == 0) {
-    data_type = 1;
-  } else if (dtype->count > 0 && strcmp(dtype->sval[0], "set") == 0) {
-    data_type = 3;
-
-  } else {
-    printf("Must specify data type: vec|txt\n");
-  }
-
-  if (help->count > 0 || ok == 0) {
-    printf("Density peaks clustering using knn-graph\n\ndencl");
-    arg_print_syntax(stdout, argtable, "\n");
-    arg_print_glossary(stdout, argtable, "  %-25s %s\n");
-    return 0;
-  }
-
-  printf("Fast Density Peaks clustering with kNN graph\n");
-  printf("infn:%s neighbors:%d clusters:%d data type:%s\n", infn->filename[0], neighbors, clusters,
-         dtype->sval[0]);
-  double *delta;
-  int *nearestHighDens;
-  double *density;
-  Array *neighborhood_peaks;
-  int N = 0;
-
-  int *peaks;
-  int *labels;
-  // DataSet* DS;
-
-  if (algo->count > 0 && strcmp(algo->sval[0], "brutef") == 0) {
-    knng_algo = 9;
-  } else if (algo->count == 0 || strcmp(algo->sval[0], "rpdiv") == 0) {
-    knng_algo = 0;
-  }
-
-  printf("clusters=%d knng_algo=%d knng_endc:%f start_nndes:%f data_type=%d\n", clusters, knng_algo,
-         endcond, start_nndes, data_type);
-  printf("time[start]=%fs\n", 0.0); // TODO: output inside get_knng??
-  knng = get_knng(infn->filename[0], neighbors, data_type, knng_algo, endcond, start_nndes, W,
-                  dfunc, num_iter);
-  printf("time[graph]=%fs\n", get_elapsed_time());
-  fflush(stdout);
-
-  N = knng->size;
-  if (knng_algo == 0) {
-    knnGraphDPstats(knng, 1, &density, &delta, &nearestHighDens, &neighborhood_peaks,
-                    calcnbprop->count);
-  } else {
-    knnGraphDPstats(knng, 0, &density, &delta, &nearestHighDens, &neighborhood_peaks,
-                    calcnbprop->count);
-  }
-  printf("time[deltadens]=%fs\n", get_elapsed_time());
-  densityPeaks(
-      // INPUT:
-      N, clusters, density, delta, nearestHighDens,
-      // OUTPUT:
-      &peaks, &labels);
-  printf("time[total]=%fs\n", get_elapsed_time());
-  printf("total_time=%fs", get_elapsed_time());
-
-  PARTITIONING P;
-  CreateNewPartitioningWithoutTS(&P, clusters, N); // TODO: Free
-  for (i = 0; i < N; i++) {
-    Map(&P, i) = labels[i] - 1;
-  }
-
-  // WriteIntegerList("npointers.txt",nearestHighDens,N);
-  // WriteDoubleList("densities.txt",density,N);
-  // WriteDoubleList("deltas.txt",delta,N);
-
-  PARTITIONING gtPart;
-
-  if (gt_pa_fn->count > 0) {
-    ReadPartitioningFile(gt_pa_fn->filename[0], &gtPart);
-    printf(" ari=%f ri=%f", EVI_ARI(&P, &gtPart, 1), EVI_RI(&P, &gtPart, 1));
-    printf("  cipart=%f", EVI_CIpart(&P, &gtPart, 2));
-    printf("  nmi=%f", EVI_NMI(&P, &gtPart, 2));
-    //"data/countries_sub_K12_n50_tp0100.pa"
-  }
-  printf(" neighborhood_peaks=%d", neighborhood_peaks->count);
-  printf(" num_iter=%d", num_iter);
-
-  printf("\n");
-
-  if (neighborhood_peaks->count < 1000) {
-    printf("NPEAKS_LIST");
-    printArray(neighborhood_peaks);
-  }
-  freeArray(neighborhood_peaks);
-
-  if (out_densdelta_fn->count > 0) {
-    printf("Writing density/delta info to file: %s\n", out_densdelta_fn->filename[0]);
-
-    WriteDensityPeaksInfo(out_densdelta_fn->filename[0], nearestHighDens, density, delta, N);
-  }
-  if (out_pa_fn->count > 0) {
-    printf("Writing Partition info to file: %s\n", out_pa_fn->filename[0]);
-    WritePartitioning2(out_pa_fn->filename[0], &P, NULL, 1 /*=AllowOverWrite*/, output_pa_header /*=writeHeader*/);
-  }
-
-  free(peaks);
-  free(labels);
-
-  printf("END\n");
-  return 0;
 }
 
 /************************************************************/

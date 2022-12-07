@@ -66,7 +66,7 @@ float calculate_recall_sampled(kNNGraph* ground_truth, kNNGraph* kNN, int recall
 
     /*printf("sumEdges:%f sumEdgesGt:%f\n",sumEdgesGt,sumEdges);*/
 
-    cost = ((float)g_dist_count)/(((float)(kNN->size - 1))*((float)(kNN->size))/2 ); //TODO: verify if correct (-1) ?
+    cost = ((float)(kNN->dist_count))/(((float)(kNN->size - 1))*((float)(kNN->size))/2 ); //TODO: verify if correct (-1) ?
     recall = ((float)recall_count)/(recall_K*ground_truth->size);
 
     g_timer.contin();
@@ -95,12 +95,6 @@ float calculate_recall(kNNGraph* ground_truth, kNNGraph* kNN) {
 
 void calculate_recall(kNNGraph* kNN) {
     if(g_ground_truth) { calculate_recall(g_ground_truth,kNN,g_options.recall_K);}
-    /*else {*/
-    /*float time_diff,cost;*/
-    /*time_diff = g_timer.get_time();*/
-    /*cost = ((float)g_dist_count)/(((float)(kNN->size - 1))*((float)(kNN->size))/2 );  ?*/
-    /*printf("TIME: %f kNN->k=%d cost:%f\n", time_diff, kNN->k, cost);*/
-    /*}*/
 }
 
 

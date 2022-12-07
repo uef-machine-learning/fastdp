@@ -14,16 +14,19 @@
 
 #include <stdio.h>
 
+
 //#include "contrib/argtable3.h"
+
+
 
 #include "timer.h"
 #include "util.h"
 #include "globals.h"
 
-#include "dataset.h"
-#include "knngraph.h"
+#include "rknng_lib.h"
 
 kNNGraph *g_ground_truth;
+
 #include "recall.h"
 
 #include "rp_div.h"
@@ -46,17 +49,41 @@ float knng_dist(kNNGraph *knng, int p1, int p2) {
   return distance(DS, p1, p2);
 }
 
+kNNGraph *create_knng(DataSet *DS, int k, int data_type, int algo, float endcond,
+                   float nndes_start, int W, int dfunc, int num_iter) {
+
+  g_options.distance_type = dfunc;
+  kNNGraph *knng;
+
+  g_timer.tick();
+
+  if (algo == 0) {
+    knng = rpdiv_create_knng(DS, DS, k, W, endcond, nndes_start, num_iter);
+  } else if (algo == 9) {
+    knng = brute_force_search(DS, k);
+  }
+
+  // debugVecGraph(DS,knng,0);
+  // debugStringGraph(DS,knng,0);
+  // knng->list[10].items[0].id = 23;
+  knng->DS = (void *)DS;
+
+  printf("time=%fs\n", g_timer.get_time());
+
+  return knng;
+}
+
+
+
 kNNGraph *get_knng(const char *infn, int k, int data_type, int algo, float endcond,
                    float nndes_start, int W, int dfunc, int num_iter) {
 
   g_options.distance_type = dfunc;
   DataSet *DS;
-  if (data_type == T_NUMERICAL) {
+  if (data_type == 1) {
     DS = read_ascii_dataset(infn);
-  } else if (data_type == T_STRING) {
+  } else if (data_type == 2) {
     DS = loadStringData(infn);
-   } else if (data_type == T_SET) {
-    DS = loadSetData(infn);
   } else {
     printf("Incorrect data type:%d\n", data_type);
   }

@@ -38,9 +38,6 @@ void rpdiv_recurse(DataSet* data,int* input_arr,int* input_arr2, int input_arr_s
     int class_B_count=0;
 
     for (int i=0; i < input_arr_size; i++) {
-        // printf("i=%d randind_A=%d randind_B=%d\n",i,randind_A,randind_B);
-        // fflush(stdout);
-
         float dist_A = distance(data,input_arr[i],randind_A);
         float dist_B = distance(data,input_arr[i],randind_B);
 

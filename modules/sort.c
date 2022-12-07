@@ -1,7 +1,7 @@
 /*-------------------------------------------------------------------*/
-/* SORT.C         Pasi Fr„nti                                        */
+/* SORT.C         Pasi FrÂ„nti                                        */
 /*                Timo Kaukoranta                                    */
-/*                Juha Kivij„rvi                                     */
+/*                Juha KivijÂ„rvi                                     */
 /*                                                                   */
 /* - Sorting routines for codebook.                                  */
 /*                                                                   */
@@ -51,7 +51,7 @@ static void Push(I32 x, STACK* s)
   if( tmp == NULL )
     {
     ErrorMessage("\nERROR: allocate Push\n");
-    ExitProcessing( -1 );
+    exit( -1 );
     }
   tmp->data = x;
   tmp->next = (*s);
@@ -70,7 +70,7 @@ static I32 Pop(STACK* s)
   if( StackEmpty(s) )
     {
     ErrorMessage("\nERROR: Stack empty, cannot POP.\n");
-    ExitProcessing(-1);
+    exit(-1);
     }
   tmp   = (*s);
   x     = (*s)->data;
@@ -198,12 +198,12 @@ static I32 MakePartition(void* base,
     do
       {
       left++;
-      if( left >= right + 2 ) { ErrorMessage("ERROR: left=%i right=%i when left++\n",left,right); ExitProcessing( -1 ); }
+      if( left >= right + 2 ) { ErrorMessage("ERROR: left=%i right=%i when left++\n",left,right); exit( -1 ); }
       } while( cmp(Elem(left), Pivot, info));
     do
       {
       right--;
-      if( left >= right + 2 ) { ErrorMessage("ERROR: left=%i right=%i when right++\n",left,right); ExitProcessing( -1 ); }
+      if( left >= right + 2 ) { ErrorMessage("ERROR: left=%i right=%i when right++\n",left,right); exit( -1 ); }
       } while( cmp(Pivot, Elem(right), info));
     if( left < right )
       {
@@ -242,7 +242,7 @@ void QuickSort(void* base,
     {
     last  = Pop(&s);
     first = Pop(&s);
-    if( first > last ) { ErrorMessage("ERROR: SORT; first>last (%i>%i)\n", first, last); ExitProcessing(-1); }
+    if( first > last ) { ErrorMessage("ERROR: SORT; first>last (%i>%i)\n", first, last); exit(-1); }
     if( last-first < 5 )
       {
       InsertSort(Elem(first), last - first + 1, elemsize, info, cmp);
@@ -257,5 +257,6 @@ void QuickSort(void* base,
       }
     } /* end while */
 }
+
 
 

@@ -259,6 +259,9 @@ void FillEmptyPartitionsWithRandom(TRAININGSET *pTS, CODEBOOK *pCB, PARTITIONING
 void ReadPartitioning(char* FileName, PARTITIONING* P, TRAININGSET* TS);
 void ReadPartitioningFile(char* FileName, PARTITIONING* P); /* MR 21.2.2013 */
 void WritePartitioning(char*         FileName, PARTITIONING* P, TRAININGSET*  TS, int           AllowOverWrite);
+void WritePartitioning2(char *FileName, PARTITIONING *P, TRAININGSET *TS, int AllowOverWrite,
+                        int writeHeader);
+
 void WriteIntegerList(char* FileName, int* list, int* N);
 
 
