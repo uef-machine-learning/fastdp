@@ -1,7 +1,6 @@
 
 #include "dataset.hpp"
 
-
 float dice_set_distance(DataSet *sd, int a, int b) {
   float d =
       (float)(1.0 - dice_ngram(sd->bigrams[a], sd->bigrams[b], sd->setSize[a], sd->setSize[b]));
@@ -227,15 +226,12 @@ float L1dist(float *p1_idx, float *p2_idx, int D) {
   float dist = 0;
   for (int i = 0; i < D; i++) {
     tmp = *p1_idx - *p2_idx;
-    /*dist += tmp * tmp;*/
     dist += abs(tmp);
     p1_idx++;
     p2_idx++;
   }
-  // TODO: sqrt?
 
   return dist;
-  /*return sqrt(dist);*/
 }
 
 float L2dist(float *p1_idx, float *p2_idx, int D) {
@@ -248,10 +244,8 @@ float L2dist(float *p1_idx, float *p2_idx, int D) {
     p1_idx++;
     p2_idx++;
   }
-  // TODO: sqrt?
 
-  return dist;
-  /*return sqrt(dist);*/
+  return sqrt(dist);
 }
 
 float cosine_dist(float *p1_idx, float *p2_idx, int D) {
@@ -273,7 +267,7 @@ float cosine_dist(float *p1_idx, float *p2_idx, int D) {
 float distance(DataSet *P, int p1, int p2) {
   float ret;
 
-  if (P->type == 2) // String data
+  if (P->type == T_STRING) // String data
   {
     if (g_options.distance_type == 10) {
       ret = dice_distance_precalc(P, p1, p2);
@@ -285,7 +279,10 @@ float distance(DataSet *P, int p1, int p2) {
   } else if (P->type == T_SET) {
     ret = dice_set_distance(P, p1, p2);
     return ret;
-  } else { // Numerical data
+  }
+
+  else if (P->type == T_NUMERICAL) {
+    // Numerical data
 
     float *p1_idx = get_vector(P, p1);
     float *p2_idx = get_vector(P, p2);
@@ -306,6 +303,21 @@ float distance(DataSet *P, int p1, int p2) {
     }
 
     return ret;
+  } else if (P->type == T_CUSTOMDF) {
+#ifdef _PYTHON_LIB
+    PyObject *pyp1;
+    PyObject *pyp2;
+    PyObject *result;
+    pyp1 = PyLong_FromLong(p1);
+    pyp2 = PyLong_FromLong(p2);
+    result = PyObject_CallFunctionObjArgs(P->pydf, pyp1, pyp2, NULL);
+    ret = PyFloat_AS_DOUBLE(result);
+    Py_DECREF(pyp1);
+    Py_DECREF(pyp2);
+    Py_DECREF(result);
+
+    return ret;
+#endif
   }
 }
 

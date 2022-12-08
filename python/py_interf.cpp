@@ -16,14 +16,17 @@
 // PyObject *py_densityPeaks(PyArrayObject *py_v, int k);
 PyObject *py_densityPeaks(PyArrayObject *py_v, int num_clusters, int num_neighbors, int W,
                           int max_iter, float endcond, float nndes_start, int dfunc);
+PyObject *py_densityPeaksGeneric(PyObject *py_v, int num_clusters, int num_neighbors, int W,  int max_iter, float endcond, float nndes_start, int dfunc);
 
 extern "C" {
 
 static PyObject *fastdp_py(PyObject *self, PyObject *args, PyObject *kwargs);
+static PyObject *fastdp_generic_py(PyObject *self, PyObject *args, PyObject *kwargs);
 
 // Define python accessible methods
 static PyMethodDef FastDPMethods[] = {
-    {"fastdp", fastdp_py, METH_VARARGS | METH_KEYWORDS, "Cluster using fast density peaks"},
+    {"fastdp", fastdp_py, METH_VARARGS | METH_KEYWORDS, "Cluster using fast density peaks."},
+    {"fastdp_generic", fastdp_generic_py, METH_VARARGS | METH_KEYWORDS, "Cluster using fast density peaks, using python provided distance function."},
     {NULL, NULL, 0, NULL}};
 
 #define v(x0, x1)                                                                                  \
@@ -95,15 +98,46 @@ static PyObject *fastdp_py(PyObject *self, PyObject *args, PyObject *kwargs) {
     }
   }
 
-  // DataSet *DS = init_DataSet(N, D);
-  // ret = py_densityPeaks(py_v,15);
   ret = py_densityPeaks(py_v, num_clusters, num_neighbors, window, maxiter, endcond, nndes_start,
                         dfunc);
 
-  // ret = Py_BuildValue("i", 99);
   return ret;
 }
+
+static PyObject *fastdp_generic_py(PyObject *self, PyObject *args, PyObject *kwargs) {
+  import_array();
+  PyObject *py_v;
+  int num_neighbors = 10, num_clusters = 10, window = 20, maxiter = 100;
+  float nndes_start = 0.0, endcond = 0.05;
+  char *type = NULL;
+  char *distance = NULL;
+  int dfunc = D_L2;
+
+  PyObject *ret;
+  static char *kwlist[] = {"v",       "num_clusters", "num_neighbors", "window",   "nndes_start",
+                           "maxiter", "endcond",      "dtype",         "distance", NULL};
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "Oi|iififss", kwlist, &py_v,
+                                   &num_clusters, &num_neighbors, &window, &nndes_start, &maxiter,
+                                   &endcond, &type, &distance)) {
+    return NULL;
+  }
+
+  if (window <= 0) {
+    window = 2 * num_neighbors;
+  }
+  if (window <= 20) {
+    window = 20;
+  }
+
+  ret = py_densityPeaksGeneric(py_v, num_clusters, num_neighbors, window, maxiter, endcond, nndes_start,
+                        dfunc);
+
+  return ret;
 }
+
+
+} // END extern "C"
 
 #ifdef DISABLED00
 // For generic distance functions implemented in python

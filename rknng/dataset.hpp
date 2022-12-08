@@ -1,6 +1,11 @@
 
 #ifndef DATASET_H
 #define DATASET_H
+
+#ifdef _PYTHON_LIB
+#include <Python.h>
+#endif
+
 #include <cstring>
 #include <cmath>
 #include <fstream>
@@ -46,7 +51,7 @@ struct DataSet {
   int type;
   int distance_type;
   int *setSize; // For set data
-#ifdef Py_PYTHON_H
+#ifdef _PYTHON_LIB
   PyObject *pyobj;
   PyObject *pydf; // Distance function defined in python
 #endif
