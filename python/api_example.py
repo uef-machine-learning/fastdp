@@ -1,20 +1,16 @@
 #!/usr/bin/python3
 
 import numpy as np
-# import fastdp
 from fastdp import fastdp,fastdp_generic
-# from fastdp import fastdp
 
 
-x=np.loadtxt('../data/s1.txt')
-dist = DistanceMeasureL2(x)
+# x=np.loadtxt('../data/s1.txt')
+# x=np.loadtxt('data/s1.txt')
+x=np.loadtxt('data/b2.txt')
 
 # Fast version using built in distance functions written in C:
 numclu=15
 (labels,peak_ids) = fastdp(x,numclu,distance="l2",num_neighbors=20)
-# print(labels)
-# print(peak_ids)
-
 
 # For higher quality (more accurate kNN):
 #  - decrease endcond (within [0.0..1.0]) 
@@ -40,7 +36,9 @@ class DistanceMeasureL2:
 		dist = np.linalg.norm(self.x[a]-self.x[b])
 		return dist
 
+dist = DistanceMeasureL2(x)
 (labels,peak_ids) = fastdp_generic(dist,numclu,num_neighbors=20,window=50,nndes_start=0.0,maxiter=30,endcond=0.03,dtype="vec")
+# Takes around 13 minutes for 100k (2D) dataset
 
 
 
