@@ -21,10 +21,7 @@
 #include <map>
 #include <algorithm>
 
-#define T_NUMERICAL 1
-#define T_STRING 2
-#define T_SET 3
-
+#include "constants.h"
 
 int *calc_ngrams(const char *str1, int ngram);
 
@@ -34,6 +31,7 @@ using namespace std;
 
 // TODO:
 #define MEM_ALIGNMENT 32
+
 struct DataSet {
   int size;
   int dimensionality;
@@ -46,8 +44,15 @@ struct DataSet {
   int **bigrams;
   int **trigrams;
   int type;
+  int distance_type;
   int *setSize; // For set data
+#ifdef Py_PYTHON_H
+  PyObject *pyobj;
+  PyObject *pydf; // Distance function defined in python
+#endif
 };
+
+
 float dice_set_distance(DataSet *sd, int a, int b);
 std::istream &safeGetline(std::istream &is, std::string &t);
 DataSet *loadSetData(std::string infname);

@@ -27,8 +27,8 @@
 #include "util.h"
 #include "globals.h"
 
-#include "dataset.h"
-#include "knngraph.h"
+#include "dataset.hpp"
+#include "knngraph.hpp"
 
 kNNGraph *g_ground_truth;
 #include "recall.h"

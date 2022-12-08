@@ -1,8 +1,8 @@
 
 #ifndef RKNNG_LIB_H
 #define RKNNG_LIB_H
-#include "dataset.h"
-#include "knngraph.h"
+#include "dataset.hpp"
+#include "knngraph.hpp"
 
 typedef int BOOL;
 #define true 1

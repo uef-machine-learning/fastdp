@@ -62,6 +62,8 @@ kNNGraph *create_knng(DataSet *DS, int k, int data_type, int algo, float endcond
   } else if (algo == 9) {
     knng = brute_force_search(DS, k);
   }
+  
+  DS->distance_type = dfunc;
 
   // debugVecGraph(DS,knng,0);
   // debugStringGraph(DS,knng,0);

@@ -1,5 +1,5 @@
 
-#include "dataset.h"
+#include "dataset.hpp"
 
 
 float dice_set_distance(DataSet *sd, int a, int b) {

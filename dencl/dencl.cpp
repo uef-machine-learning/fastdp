@@ -16,7 +16,7 @@ extern "C" {
 
 #include <float.h>
 
-#include "dencl.h"
+#include "dencl.hpp"
 
 #ifdef Py_PYTHON_H
 // PyObject *py_densityPeaks(PyArrayObject *py_v, int k) {

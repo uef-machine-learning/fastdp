@@ -9,7 +9,7 @@ kNNGraph* brute_force_search (DataSet* data, int k) {
 
     printf("Staring brute force search\n");
 
-#if defined(_OPENMP)
+#if defined(_OPENMP_TODO)
 omp_set_num_threads(g_options.num_threads);
 #pragma omp parallel for default(shared)
 #endif

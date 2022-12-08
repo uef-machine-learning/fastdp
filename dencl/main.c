@@ -9,7 +9,7 @@
 
 // #include "stack.h"
 
-#include "dencl.h"
+#include "dencl.hpp"
 
 
 extern "C" {

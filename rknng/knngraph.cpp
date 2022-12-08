@@ -1,4 +1,4 @@
-#include "knngraph.h"
+#include "knngraph.hpp"
 
 kNNGraph *init_kNNGraph(int N, int K, int maxK) {
   kNNGraph *kNN = (kNNGraph *)safemalloc(sizeof(kNNGraph));
