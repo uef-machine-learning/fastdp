@@ -52,6 +52,7 @@ struct DataSet {
   int distance_type;
   int *setSize; // For set data
 #ifdef _PYTHON_LIB
+  PyObject **pyids;
   PyObject *pyobj;
   PyObject *pydf; // Distance function defined in python
 #endif

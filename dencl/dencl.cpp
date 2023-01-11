@@ -29,6 +29,11 @@ extern "C" {
 // }
 #endif
 
+float knng_dist(kNNGraph *knng, int p1, int p2) {
+  DataSet *DS = (DataSet *)knng->DS;
+  return distance(DS, p1, p2);
+}
+
 /*
  * Calculate density, delta and nearest high density pointer values based on
  * knn graph. To be used for density peaks clustering.
@@ -62,7 +67,7 @@ int knnGraphDPstats(
     double mean_dist = 0.0;
     for (j = 0; j < knng->k; j++) {
       // density[i] += sqrt(((double)(knng->list[i].items[j].dist)));
-      dist_sum += sqrt(((double)(knng->list[i].items[j].dist)));
+      dist_sum += ((double)(knng->list[i].items[j].dist));
     }
     mean_dist = dist_sum / knng->k;
     if (mean_dist < eps) {
@@ -99,7 +104,7 @@ int knnGraphDPstats(
       revn *r = malloc(sizeof(revn));
       // r->id = knng->list[i].items[j].id;
       r->id = i;
-      r->dist = sqrt(knng->list[i].items[j].dist);
+      r->dist = knng->list[i].items[j].dist;
       int neighbor = knng->list[i].items[j].id;
       insertVoidArr(reverse_knn[neighbor], (void *)r);
     }
@@ -116,7 +121,7 @@ int knnGraphDPstats(
         neighbor = knng->list[i].items[j].id;
         if (density[neighbor] > density[i]) {
           found_in_knn++;
-          delta[i] = sqrt(knng->list[i].items[j].dist);
+          delta[i] = knng->list[i].items[j].dist;
           if (maxDelta < delta[i]) {
             maxDelta = delta[i];
           }
@@ -169,6 +174,8 @@ int knnGraphDPstats(
 
   int highest_delta_id = -1;
   for (i = 0; i < delta_not_found->count; i++) {
+  
+  printf("i=%d\n",i);
     init_minFind(&dlt);
     int curid = delta_not_found->array[i];
     for (j = 0; j < N; j++) {
@@ -176,7 +183,7 @@ int knnGraphDPstats(
         continue;
       }
       int candidate = j;
-      dist = sqrt(knng_dist(knng, curid, candidate));
+      dist = knng_dist(knng, curid, candidate);
 
       // Keep track of minimum distance to higher density
       if (density[curid] < density[candidate]) {

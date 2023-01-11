@@ -9,6 +9,7 @@ CC_OPT2=-lm -static
 
 BINS=dencl
 OBJS=modules/file.o dencl/main.obj dencl/dencl.obj rknng/util.obj rknng/dataset.obj rknng/knngraph.obj cbevi/evi.o rknng/rknng_lib.o rknng/options.o modules/cb.o modules/interfc.o  modules/stack.o modules/sort.o modules/random.o modules/textfile.o modules/fvec.o modules/argtable3.o
+OBJS2=modules/file.o dencl/main2.obj cbevi/evi.o modules/cb.o modules/interfc.o  modules/stack.o modules/sort.o modules/random.o modules/textfile.o modules/fvec.o modules/argtable3.o
 
 
 OPT     = -O3 $(DEBUG) -std=c99  -Wall  -I. -I$(MODULES)  
@@ -20,6 +21,10 @@ all: dencl
 
 dencl: $(OBJS)
 	$(GPP) -o denc $(CCOPT1) $(OBJS) -lm
+	
+dencl2: $(OBJS2)
+	$(GPP) -o denc $(CCOPT1) $(OBJS2) -lm
+
 
 %.o: %.c
 	$(CC) $(OPT) -c $(patsubst %.o,%.c,$@) -o $@
@@ -29,5 +34,5 @@ dencl: $(OBJS)
 
 
 clean:
-	rm  denc cbevi/cbevi rknng/apitest rknng/*.a */*.o *.o
+	rm  denc cbevi/cbevi rknng/apitest rknng/*.a */*.o *.o */*obj
 

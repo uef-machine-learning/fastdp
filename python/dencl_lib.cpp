@@ -60,13 +60,13 @@ PyObject *array_to_py(int *arr, int N) {
   return pyarr;
 }
 
+PyObject *py_densityPeaksGeneric(PyObject *py_v, int num_clusters, int num_neighbors, int W,
+                                 int max_iter, float endcond, float nndes_start, int dfunc) {
 
-PyObject *py_densityPeaksGeneric(PyObject *py_v, int num_clusters, int num_neighbors, int W,  int max_iter, float endcond, float nndes_start, int dfunc) {
-
-// PyObject *py_densityPeaks(PyArrayObject *py_v, int k) {
+  // PyObject *py_densityPeaks(PyArrayObject *py_v, int k) {
   PyObject *ret;
-  PyObject * py_labels;
-  PyObject * py_peaks;
+  PyObject *py_labels;
+  PyObject *py_peaks;
   printf("py_densityPeaks\n");
 
   double *delta;
@@ -80,9 +80,14 @@ PyObject *py_densityPeaksGeneric(PyObject *py_v, int num_clusters, int num_neigh
   DataSet *DS = (DataSet *)safemalloc(sizeof(DataSet));
   DS->size = PyLong_AsLong(pysize);
   DS->dimensionality = 0;
-  DS->type = T_CUSTOMDF; 
+  DS->type = T_CUSTOMDF;
   DS->pydf = PyObject_GetAttrString(py_v, "distance");
   int N = DS->size;
+
+  DS->pyids = (PyObject **)malloc(sizeof(PyObject) * N);
+  for (int i = 0; i < N; i++) {
+    DS->pyids[i] = PyLong_FromLong(i);
+  }
 
   kNNGraph *knng;
 
@@ -98,8 +103,8 @@ PyObject *py_densityPeaksGeneric(PyObject *py_v, int num_clusters, int num_neigh
       N, num_clusters, density, delta, nearestHighDens,
       // OUTPUT:
       &peaks, &labels);
-  py_labels = array_to_py(labels,N);
-  py_peaks = array_to_py(peaks,num_clusters);
+  py_labels = array_to_py(labels, N);
+  py_peaks = array_to_py(peaks, num_clusters);
   // ret = Py_BuildValue("i", 89);
   ret = PyList_New(2);
   PyList_SetItem(ret, 0, py_labels);
@@ -109,13 +114,13 @@ PyObject *py_densityPeaksGeneric(PyObject *py_v, int num_clusters, int num_neigh
   // , int w, float nndes, float delta, int maxiter, int dtype) {
 }
 
+PyObject *py_densityPeaks(PyArrayObject *py_v, int num_clusters, int num_neighbors, int W,
+                          int max_iter, float endcond, float nndes_start, int dfunc) {
 
-PyObject *py_densityPeaks(PyArrayObject *py_v, int num_clusters, int num_neighbors, int W,  int max_iter, float endcond, float nndes_start, int dfunc) {
-
-// PyObject *py_densityPeaks(PyArrayObject *py_v, int k) {
+  // PyObject *py_densityPeaks(PyArrayObject *py_v, int k) {
   PyObject *ret;
-  PyObject * py_labels;
-  PyObject * py_peaks;
+  PyObject *py_labels;
+  PyObject *py_peaks;
   printf("py_densityPeaks\n");
 
   double *delta;
@@ -150,8 +155,8 @@ PyObject *py_densityPeaks(PyArrayObject *py_v, int num_clusters, int num_neighbo
       N, num_clusters, density, delta, nearestHighDens,
       // OUTPUT:
       &peaks, &labels);
-  py_labels = array_to_py(labels,N);
-  py_peaks = array_to_py(peaks,num_clusters);
+  py_labels = array_to_py(labels, N);
+  py_peaks = array_to_py(peaks, num_clusters);
   // ret = Py_BuildValue("i", 89);
   ret = PyList_New(2);
   PyList_SetItem(ret, 0, py_labels);

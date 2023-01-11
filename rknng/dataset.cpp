@@ -267,21 +267,7 @@ float cosine_dist(float *p1_idx, float *p2_idx, int D) {
 float distance(DataSet *P, int p1, int p2) {
   float ret;
 
-  if (P->type == T_STRING) // String data
-  {
-    if (g_options.distance_type == 10) {
-      ret = dice_distance_precalc(P, p1, p2);
-    } else {
-      int distr = edit_distance(P->strings->at(p1), P->strings->at(p2));
-      ret = (float)distr;
-    }
-    return ret;
-  } else if (P->type == T_SET) {
-    ret = dice_set_distance(P, p1, p2);
-    return ret;
-  }
-
-  else if (P->type == T_NUMERICAL) {
+  if (P->type == T_NUMERICAL) {
     // Numerical data
 
     float *p1_idx = get_vector(P, p1);
@@ -303,17 +289,33 @@ float distance(DataSet *P, int p1, int p2) {
     }
 
     return ret;
-  } else if (P->type == T_CUSTOMDF) {
+  } else if (P->type == T_STRING) // String data
+  {
+    if (g_options.distance_type == 10) {
+      ret = dice_distance_precalc(P, p1, p2);
+    } else {
+      int distr = edit_distance(P->strings->at(p1), P->strings->at(p2));
+      ret = (float)distr;
+    }
+    return ret;
+  } else if (P->type == T_SET) {
+    ret = dice_set_distance(P, p1, p2);
+    return ret;
+  }
+
+  else if (P->type == T_CUSTOMDF) {
 #ifdef _PYTHON_LIB
-    PyObject *pyp1;
-    PyObject *pyp2;
+    // PyObject *pyp1;
+    // PyObject *pyp2;
     PyObject *result;
-    pyp1 = PyLong_FromLong(p1);
-    pyp2 = PyLong_FromLong(p2);
-    result = PyObject_CallFunctionObjArgs(P->pydf, pyp1, pyp2, NULL);
+    // pyp1 = PyLong_FromLong(p1);
+    // pyp2 = PyLong_FromLong(p2);
+    // result = PyObject_CallFunctionObjArgs(P->pydf, pyp1, pyp2, NULL);
+    result = PyObject_CallFunctionObjArgs(P->pydf, P->pyids[p1], P->pyids[p2], NULL);
+    
     ret = PyFloat_AS_DOUBLE(result);
-    Py_DECREF(pyp1);
-    Py_DECREF(pyp2);
+    // Py_DECREF(pyp1);
+    // Py_DECREF(pyp2);
     Py_DECREF(result);
 
     return ret;

@@ -44,10 +44,6 @@ void printDSVec(kNNGraph *knng, int id) {
   printf("id:%d [%f, %f]\n", id, DS->data[id][0], DS->data[id][1]);
 }
 
-float knng_dist(kNNGraph *knng, int p1, int p2) {
-  DataSet *DS = (DataSet *)knng->DS;
-  return distance(DS, p1, p2);
-}
 
 kNNGraph *create_knng(DataSet *DS, int k, int data_type, int algo, float endcond,
                    float nndes_start, int W, int dfunc, int num_iter) {
@@ -90,6 +86,8 @@ kNNGraph *get_knng(const char *infn, int k, int data_type, int algo, float endco
     printf("Incorrect data type:%d\n", data_type);
   }
   kNNGraph *knng;
+  DS->type = data_type;
+  DS->distance_type = dfunc;
 
   g_timer.tick();
 
