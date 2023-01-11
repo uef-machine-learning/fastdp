@@ -7,10 +7,24 @@
 
 #include "rknng/rknng_lib.h"
 
+#include "rknng/dataset.hpp"
+#include "rknng/knngraph.hpp"
+#include "rknng/options.h"
+// #include "rknng/rknng_lib.hpp"
+#include "rknng/util.h"
+
+// Yes, it is a bit uggly to include cpp files, but it leads to
+// better optimization than when compiling each file  separately
+#include "rknng/dataset.cpp"
+#include "rknng/knngraph.cpp"
+#include "rknng/options.cpp"
+#include "rknng/rknng_lib.cpp"
+#include "rknng/util.cpp"
+
 // #include "stack.h"
 
 #include "dencl.hpp"
-
+#include "dencl.cpp"
 
 extern "C" {
 #include "cb.h"
@@ -265,7 +279,8 @@ int main(int argc, char *argv[]) {
   }
   if (out_pa_fn->count > 0) {
     printf("Writing Partition info to file: %s\n", out_pa_fn->filename[0]);
-    WritePartitioning2(out_pa_fn->filename[0], &P, NULL, 1 /*=AllowOverWrite*/, output_pa_header /*=writeHeader*/);
+    WritePartitioning2(out_pa_fn->filename[0], &P, NULL, 1 /*=AllowOverWrite*/,
+                       output_pa_header /*=writeHeader*/);
   }
 
   free(peaks);
@@ -274,4 +289,3 @@ int main(int argc, char *argv[]) {
   printf("END\n");
   return 0;
 }
-

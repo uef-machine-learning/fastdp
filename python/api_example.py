@@ -4,12 +4,10 @@ import numpy as np
 from fastdp import fastdp,fastdp_generic
 
 
-# x=np.loadtxt('../data/s1.txt')
 # x=np.loadtxt('data/s1.txt')
 x=np.loadtxt('data/b2.txt')
 
 # Fast version using built in distance functions written in C:
-numclu=15
 # (labels,peak_ids) = fastdp(x,numclu,distance="l2",num_neighbors=30)
 
 # For higher quality (more accurate kNN):
@@ -18,7 +16,8 @@ numclu=15
 #  - set nndes around 0.2 (higer than delta)
 
 #Example:
-# (labels,peak_ids) = fastdp(x,numclu,distance="l2",num_neighbors=20,window=50,nndes_start=0.2,maxiter=30,endcond=0.001,dtype="vec")
+numclu=100
+(labels,peak_ids) = fastdp(x,numclu,distance="l2",num_neighbors=20,window=50,nndes_start=0.2,maxiter=30,endcond=0.001,dtype="vec")
 
 # Slower version using distance function provided by python:
 # (Can work with any kind of distance)

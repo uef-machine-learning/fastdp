@@ -1,7 +1,3 @@
-//#ifdef Py_PYTHON_H
-// #include <Python.h>
-// #include <numpy/arrayobject.h>
-// #endif
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -17,17 +13,6 @@ extern "C" {
 #include <float.h>
 
 #include "dencl.hpp"
-
-#ifdef Py_PYTHON_H
-// PyObject *py_densityPeaks(PyArrayObject *py_v, int k) {
-  // PyObject *ret;
-  // printf("py_densityPeaks\n");
-
-  // ret = Py_BuildValue("i", 99);
-  // return ret;
-  // // , int w, float nndes, float delta, int maxiter, int dtype) {
-// }
-#endif
 
 float knng_dist(kNNGraph *knng, int p1, int p2) {
   DataSet *DS = (DataSet *)knng->DS;
@@ -175,7 +160,6 @@ int knnGraphDPstats(
   int highest_delta_id = -1;
   for (i = 0; i < delta_not_found->count; i++) {
   
-  printf("i=%d\n",i);
     init_minFind(&dlt);
     int curid = delta_not_found->array[i];
     for (j = 0; j < N; j++) {

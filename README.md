@@ -7,13 +7,58 @@ Sieranoja, Sami, and Pasi Fränti. "Fast and General Density Peaks Clustering." 
 
 The software is provided with GNU Lesser General Public License, Version 3. https://www.gnu.org/licenses/lgpl.html. All files except those under data and contrib -folders are subject to this license. See LICENSE.txt.
 
+Contact: samisi@cs.uef.fi
+
+# Python interface
+This should work nicely, but has not been widely tested yet. Let me know how it works for you if you try it out.
+
+
+Compile:
+
+```
+git clone 'https://github.com/uef-machine-learning/fastdp.git'
+cd fastdp
+rm build/**/**/*
+rm build/**/*
+pip uninstall fastdp 
+python3 ./setup.py build_ext --inplace
+python setup.py sdist
+python setup.py bdist_wheel 
+pip install dist/fastdp-1.0-cp38-cp38-linux_x86_64.whl
+```
+
+Usage example (see python/api_example.py):
+
+```
+import numpy as np
+from fastdp import fastdp,fastdp_generic
+x=np.loadtxt('data/b2.txt')
+numclu=100
+(labels,peak_ids) = fastdp(x,numclu,distance="l2",num_neighbors=20,window=50,nndes_start=0.2,maxiter=30,endcond=0.001,dtype="vec")
+
+```
+
+Generic version, giving distance function as parameter:
+```
+class DistanceMeasureL2:
+	def __init__(self,x):
+		self.tmp = 1
+		self.x = x
+		self.size = len(x)
+	def distance(self,a,b):
+		dist = np.linalg.norm(self.x[a]-self.x[b])
+		return dist
+
+dist = DistanceMeasureL2(x)
+(labels,peak_ids) = fastdp_generic(dist,numclu,num_neighbors=20,window=50,nndes_start=0.0,maxiter=30,endcond=0.03,dtype="vec")
+```
+
+# Commandline interface
 ## Compile
 
 ```
 make clean
-make -C cbevi
-make -C rknng apitest
-make dencl
+make
 ```
 
 
