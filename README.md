@@ -18,13 +18,9 @@ Compile:
 ```
 git clone 'https://github.com/uef-machine-learning/fastdp.git'
 cd fastdp
-rm build/**/**/*
-rm build/**/*
-pip uninstall fastdp 
-python3 ./setup.py build_ext --inplace
-python setup.py sdist
-python setup.py bdist_wheel 
-pip install dist/fastdp-1.0-cp38-cp38-linux_x86_64.whl
+pip install -r requirements.txt
+pip install .
+python3 python/api_example.py
 ```
 
 Usage example (see python/api_example.py):
